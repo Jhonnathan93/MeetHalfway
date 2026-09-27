@@ -1,0 +1,47 @@
+# Environment / secrets — never commit provider keys or DB credentials (Req 11.4)
+.env
+.env.*
+!.env.example
+
+# Local tools and test-run state
+.buildtools/
+.jqwik-database
+
+# Backend (Spring Boot / Maven / Gradle)
+backend/target/
+backend/build/
+backend/.gradle/
+backend/bin/
+backend/cp.txt
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+
+# Frontend (Node / Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/dist-ssr/
+frontend/coverage/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.tsbuildinfo
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Test reports and temporary files
+coverage/
+reports/
+*.log
+*.tmp
+*.temp
