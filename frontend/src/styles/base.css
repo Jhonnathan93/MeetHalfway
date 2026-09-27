@@ -1,0 +1,61 @@
+/*
+ * Desktop-first responsive base layout (Req 10.2).
+ * Base rules target desktop widths; narrower breakpoints scale down via
+ * max-width media queries.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+#app {
+  min-height: 100vh;
+}
+
+/* Desktop-first container: full desktop width capped, centered. */
+.app-container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-4);
+}
+
+.app-main {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-4);
+}
+
+/* Tablet */
+@media (max-width: 1024px) {
+  .app-container {
+    padding: var(--space-3);
+  }
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+  .app-container {
+    padding: var(--space-2);
+  }
+}
