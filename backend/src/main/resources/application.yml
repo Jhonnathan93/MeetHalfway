@@ -38,6 +38,9 @@ meethalfway:
     max-search-radius-meters: ${MEETHALFWAY_MAX_RADIUS_M:20000.0}
     # Equality threshold epsilon ~= 0.5 minute (config-driven).
     epsilon-minutes: ${MEETHALFWAY_EPSILON_MIN:0.5}
+    # Outlier rule (Requirement 7.1): median-multiple k, pending calibration
+    # (candidate ~= 2). The 15% efficiency tolerance stays a fixed domain constant.
+    outlier-median-multiple-k: ${MEETHALFWAY_OUTLIER_K:2.0}
 
   # Routing provider (ADR-001): free / open-source OSRM. The public demo server
   # is keyless, so no secret is required for the MVP. If a self-hosted or
@@ -49,3 +52,41 @@ meethalfway:
     walking-profile: ${MEETHALFWAY_ROUTING_WALKING_PROFILE:walking}
     timeout-millis: ${MEETHALFWAY_ROUTING_TIMEOUT_MS:5000}
     api-key: ${MEETHALFWAY_ROUTING_API_KEY:}
+
+  # Geocoding provider (Requirements 9.7, 11.4): free / keyless OpenStreetMap
+  # Nominatim by default. Nominatim's usage policy requires a descriptive
+  # User-Agent/contact string, supplied here from the backend environment only.
+  # An optional api-key exists so a swap to a keyed free-tier provider needs no
+  # code change; when set it is provided via MEETHALFWAY_GEOCODING_API_KEY from
+  # the backend runtime and is never exposed to the frontend.
+  geocoding:
+    base-url: ${MEETHALFWAY_GEOCODING_BASE_URL:https://nominatim.openstreetmap.org}
+    api-key: ${MEETHALFWAY_GEOCODING_API_KEY:}
+    user-agent: "${MEETHALFWAY_GEOCODING_USER_AGENT:MeetHalfway/0.1 (ops@meethalfway.app)}"
+    timeout-millis: ${MEETHALFWAY_GEOCODING_TIMEOUT_MS:5000}
+    result-limit: ${MEETHALFWAY_GEOCODING_RESULT_LIMIT:5}
+
+  # Rate limiting (Requirement 11.4). Hand-rolled in-memory fixed-window limiter
+  # (no third-party library), keyed by client IP and scoped to /api/v1/*. Tune
+  # the budget/window per deployment via the environment.
+  rate-limit:
+    enabled: ${MEETHALFWAY_RATE_LIMIT_ENABLED:true}
+    requests-per-window: ${MEETHALFWAY_RATE_LIMIT_REQUESTS:60}
+    window-seconds: ${MEETHALFWAY_RATE_LIMIT_WINDOW_SECONDS:60}
+
+  # CORS (Requirement 11.4). Only the explicitly configured origins are allowed;
+  # the wildcard is never combined with credentials. Defaults cover the Vite dev
+  # server plus a placeholder production origin supplied via the environment.
+  cors:
+    allowed-origins:
+      - ${MEETHALFWAY_CORS_DEV_ORIGIN:http://localhost:5173}
+      - ${MEETHALFWAY_CORS_PROD_ORIGIN:https://meethalfway.example}
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - DELETE
+      - OPTIONS
+    allowed-headers:
+      - Content-Type
+      - Accept

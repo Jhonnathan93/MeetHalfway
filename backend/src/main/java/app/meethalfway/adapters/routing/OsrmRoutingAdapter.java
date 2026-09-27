@@ -1,21 +1,22 @@
 package app.meethalfway.adapters.routing;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpTimeoutException;
+import java.time.Duration;
+import java.util.Locale;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import app.meethalfway.config.RoutingProperties;
 import app.meethalfway.domain.model.Coordinate;
 import app.meethalfway.domain.model.Minutes;
 import app.meethalfway.domain.model.TransportMode;
 import app.meethalfway.domain.port.RouteResult;
 import app.meethalfway.domain.port.RoutingProvider;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpConnectTimeoutException;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.net.http.HttpTimeoutException;
-import java.time.Duration;
-import java.util.Locale;
 
 /**
  * Routing adapter implementing {@link RoutingProvider} on top of the free /
@@ -116,7 +117,9 @@ public class OsrmRoutingAdapter implements RoutingProvider {
         final HttpResponse<String> response;
         try {
             response = httpClient.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
-        } catch (HttpConnectTimeoutException | HttpTimeoutException e) {
+        } catch (HttpTimeoutException e) {
+            // HttpConnectTimeoutException is a subclass of HttpTimeoutException,
+            // so this single catch covers both connect and request timeouts.
             return RouteResult.failure(
                     "Routing request timed out after " + timeout.toMillis() + " ms.");
         } catch (java.io.IOException e) {

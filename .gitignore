@@ -6,6 +6,8 @@
 # Local tools and test-run state
 .buildtools/
 .jqwik-database
+.cache_ggshield
+.gitguardian.yaml
 
 # Backend (Spring Boot / Maven / Gradle)
 backend/target/

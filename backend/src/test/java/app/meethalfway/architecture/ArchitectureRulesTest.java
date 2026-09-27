@@ -42,9 +42,17 @@ class ArchitectureRulesTest {
                 .whereLayer("Domain").mayOnlyBeAccessedByLayers("Application", "Adapters", "Config")
                 // Application may only be reached from the edges.
                 .whereLayer("Application").mayOnlyBeAccessedByLayers("Adapters", "Config")
-                // Adapters/Config are edges: nothing inner may depend on them.
-                .whereLayer("Adapters").mayNotBeAccessedByAnyLayer()
-                .whereLayer("Config").mayNotBeAccessedByAnyLayer();
+                // Adapters are an edge, but Config is the composition root that
+                // wires them, so Adapters may be accessed only by Config; nothing
+                // inner (Domain, Application) may depend on them — that is the
+                // invariant that matters for the dependency rule.
+                .whereLayer("Adapters").mayOnlyBeAccessedByLayers("Config")
+                // Config holds the externalized settings records that adapters
+                // bind to (e.g. RoutingProperties), so Adapters may access Config;
+                // and Config is the composition root, accessed by no inner layer.
+                // Listing only Adapters keeps Domain and Application forbidden
+                // from touching Config, preserving the inward dependency rule.
+                .whereLayer("Config").mayOnlyBeAccessedByLayers("Adapters");
 
         rule.check(classes);
     }
