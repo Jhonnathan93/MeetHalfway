@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: meethalfway-backend
+  # Datasource is externalized (Docker Compose / environment provides the real
+  # PostgreSQL URL). Values below are placeholders read from the environment so
+  # that no credentials are hard-coded.
+  datasource:
+    url: ${MEETHALFWAY_DB_URL:jdbc:postgresql://localhost:5432/meethalfway}
+    username: ${MEETHALFWAY_DB_USER:meethalfway}
+    password: ${MEETHALFWAY_DB_PASSWORD:meethalfway}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      # Schema is owned by migrations (added in the persistence task); never let
+      # Hibernate mutate the schema automatically.
+      ddl-auto: none
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+
+server:
+  port: ${MEETHALFWAY_PORT:8080}
+
+# City-agnostic engine configuration (Requirements 5.4, 11.5). No Medellin-specific
+# value is embedded in code; everything tunable lives here. The 15% efficiency
+# tolerance is intentionally absent: it is a fixed domain constant (Requirement 4.3).
+meethalfway:
+  engine:
+    # Placeholder service bounds; calibrated per deployment/city via configuration.
+    service-bounds-min-lat: ${MEETHALFWAY_BOUNDS_MIN_LAT:-90.0}
+    service-bounds-max-lat: ${MEETHALFWAY_BOUNDS_MAX_LAT:90.0}
+    service-bounds-min-lng: ${MEETHALFWAY_BOUNDS_MIN_LNG:-180.0}
+    service-bounds-max-lng: ${MEETHALFWAY_BOUNDS_MAX_LNG:180.0}
+    # Open questions in the spec: N and max radius are tuned with real data.
+    grid-density-n: ${MEETHALFWAY_GRID_N:400}
+    max-search-radius-meters: ${MEETHALFWAY_MAX_RADIUS_M:20000.0}
+    # Equality threshold epsilon ~= 0.5 minute (config-driven).
+    epsilon-minutes: ${MEETHALFWAY_EPSILON_MIN:0.5}
+
+  # Routing provider (ADR-001): free / open-source OSRM. The public demo server
+  # is keyless, so no secret is required for the MVP. If a self-hosted or
+  # alternative deployment needs a key, provide it via MEETHALFWAY_ROUTING_API_KEY
+  # from the backend runtime environment only; it is never exposed to the frontend.
+  routing:
+    base-url: ${MEETHALFWAY_ROUTING_BASE_URL:https://router.project-osrm.org}
+    driving-profile: ${MEETHALFWAY_ROUTING_DRIVING_PROFILE:driving}
+    walking-profile: ${MEETHALFWAY_ROUTING_WALKING_PROFILE:walking}
+    timeout-millis: ${MEETHALFWAY_ROUTING_TIMEOUT_MS:5000}
+    api-key: ${MEETHALFWAY_ROUTING_API_KEY:}
