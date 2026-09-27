@@ -29,15 +29,6 @@
         "--headless"
       ],
       "disabled": false
-    },
-    "postgres": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-postgres",
-        "${POSTGRES_MCP_URL}"
-      ],
-      "disabled": false
     }
   }
 }

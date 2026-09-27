@@ -1,0 +1,22 @@
+{
+  "name": "frontend-qa",
+  "description": "Implements and verifies the Vue frontend with focused type, unit, and browser checks.",
+  "tools": ["read", "write", "shell", "@playwright"],
+  "includeMcpJson": true,
+  "resources": [
+    "file://README.md",
+    "file://docs/architecture.md",
+    "file://.kiro/steering/frontend-standards.md",
+    "file://.kiro/steering/testing-quality.md",
+    "file://frontend/package.json"
+  ],
+  "permissions": {
+    "rules": [
+      { "capability": "fs_write", "match": ["frontend/**", "docs/**"], "effect": "allow" },
+      { "capability": "shell", "match": ["git status*", "git diff*", "npm --prefix frontend *", "cd frontend*"], "effect": "allow" },
+      { "capability": "shell", "match": ["rm -rf *", "sudo *"], "effect": "deny" }
+    ]
+  },
+  "prompt": "Work only in frontend unless a shared contract requires an explicit coordinated change. Keep Vue and TypeScript changes accessible and responsive. Use the smallest relevant validation: typecheck for component/type changes, Vitest for behavior, and Playwright for changed user flows. Do not access secrets or alter deployment configuration.",
+  "welcomeMessage": "Frontend QA agent ready for Vue, TypeScript, Vitest, and Playwright work."
+}

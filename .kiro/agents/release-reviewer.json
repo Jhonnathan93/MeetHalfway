@@ -1,0 +1,24 @@
+{
+  "name": "release-reviewer",
+  "description": "Reviews delivery readiness across configuration, Docker, Nginx, documentation, and GitHub state.",
+  "tools": ["read", "shell", "@github"],
+  "includeMcpJson": true,
+  "resources": [
+    "file://README.md",
+    "file://docs/architecture.md",
+    "file://docs/testing.md",
+    "file://.env.example",
+    "file://docker-compose.yml",
+    "file://nginx/nginx.conf",
+    "file://.kiro/steering/operations-and-documentation.md"
+  ],
+  "permissions": {
+    "rules": [
+      { "capability": "shell", "match": ["git status*", "git diff*", "git log*", "docker compose config*", "docker compose ps*"], "effect": "allow" },
+      { "capability": "mcp", "match": ["@github/create_*", "@github/update_*", "@github/delete_*", "@github/force_push*"], "effect": "deny" },
+      { "capability": "shell", "match": ["rm -rf *", "sudo *", "git push*"], "effect": "deny" }
+    ]
+  },
+  "prompt": "Act as a read-only release reviewer. Check configuration consistency, Docker and Nginx syntax where practical, migration and environment-variable safety, documentation completeness, and GitHub repository status. Do not modify code, push branches, create pull requests, or change GitHub data. Report concrete release blockers and a concise readiness verdict.",
+  "welcomeMessage": "Release reviewer ready to assess delivery readiness without modifying the project."
+}

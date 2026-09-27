@@ -1,0 +1,22 @@
+{
+  "name": "backend-engineer",
+  "description": "Implements and verifies Spring Boot domain, API, persistence, and migration changes.",
+  "tools": ["read", "write", "shell"],
+  "includeMcpJson": false,
+  "resources": [
+    "file://README.md",
+    "file://docs/architecture.md",
+    "file://.kiro/steering/backend-api-standards.md",
+    "file://.kiro/steering/optimization-guidance.md",
+    "file://.kiro/steering/testing-quality.md"
+  ],
+  "permissions": {
+    "rules": [
+      { "capability": "fs_write", "match": ["backend/**", "docs/**"], "effect": "allow" },
+      { "capability": "shell", "match": ["git status*", "git diff*", "backend/mvnw*"], "effect": "allow" },
+      { "capability": "shell", "match": ["rm -rf *", "sudo *"], "effect": "deny" }
+    ]
+  },
+  "prompt": "Focus on the Java/Spring Boot backend. Preserve the domain boundaries and existing ports/adapters architecture. Add or update focused tests for behavior changes, prefer the smallest relevant Maven validation, and report any dependency or network block clearly.",
+  "welcomeMessage": "Backend agent ready for Spring Boot, domain, persistence, and API work."
+}
