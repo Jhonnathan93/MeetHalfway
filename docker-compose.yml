@@ -1,0 +1,78 @@
+# MeetHalfway — local + single-instance deployment stack.
+# Nginx terminates HTTP and routes /api/v1 to the backend (Req 11.1, 11.3).
+# API keys and DB credentials stay backend-only (Req 11.4) via environment/secrets.
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: meethalfway-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-meethalfway}
+      POSTGRES_USER: ${POSTGRES_USER:-meethalfway}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-meethalfway}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-meethalfway} -d ${POSTGRES_DB:-meethalfway}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - meethalfway
+
+  backend:
+    build:
+      context: ./backend
+    container_name: meethalfway-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      # Spring datasource — credentials never reach the frontend (Req 11.4).
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/${POSTGRES_DB:-meethalfway}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-meethalfway}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-meethalfway}
+      # Explicit CORS allow-list re-asserted at the backend (Req 11.3).
+      MEETHALFWAY_CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173,http://localhost}
+      # Backend-only provider keys (Req 11.4) — supply via .env / secrets.
+      ROUTING_PROVIDER_API_KEY: ${ROUTING_PROVIDER_API_KEY:-}
+      GEOCODING_PROVIDER_API_KEY: ${GEOCODING_PROVIDER_API_KEY:-}
+    expose:
+      - "8080"
+    networks:
+      - meethalfway
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: meethalfway-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    expose:
+      - "80"
+    networks:
+      - meethalfway
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: meethalfway-nginx
+    restart: unless-stopped
+    depends_on:
+      - backend
+      - frontend
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - meethalfway
+
+volumes:
+  db-data:
+
+networks:
+  meethalfway:
+    driver: bridge
