@@ -1,0 +1,14 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Targeted quality review",
+      "description": "Selects only the verification relevant to the files changed in the task.",
+      "trigger": "Stop",
+      "action": {
+        "type": "agent",
+        "prompt": "Before completing a task that changed project files, inspect the changes for scope and run the smallest relevant validation. For Java changes, prefer the affected Maven test or compilation check; for frontend TypeScript/Vue changes, prefer typecheck or the affected Vitest test; for Docker/Nginx/configuration, validate syntax where practical. Do not run unrelated full suites, do not change unrelated files, and clearly report any validation blocked by unavailable dependencies or network access."
+      }
+    }
+  ]
+}

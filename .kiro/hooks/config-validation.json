@@ -1,0 +1,16 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Validate project JSON",
+      "description": "Fails early when a tracked project JSON configuration is invalid.",
+      "trigger": "PostFileSave",
+      "matcher": "(^|[\\\\/])(?:\\.kiro[\\\\/]settings[\\\\/]mcp|frontend[\\\\/](?:package|package-lock|tsconfig|tsconfig\\.node))\\.json$",
+      "action": {
+        "type": "command",
+        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .kiro/hooks/scripts/validate-project-json.ps1"
+      },
+      "timeout": 15
+    }
+  ]
+}

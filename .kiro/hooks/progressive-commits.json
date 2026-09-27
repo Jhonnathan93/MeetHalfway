@@ -3,12 +3,13 @@
   "hooks": [
     {
       "name": "Progressive conventional commits",
-      "trigger": "PostFileSave",
-      "matcher": "\\.(java|ts|tsx|js|jsx|vue|css|scss|json|ya?ml|md|sql)$",
+      "description": "Creates one Conventional Commit checkpoint when an agent task ends.",
+      "trigger": "Stop",
       "action": {
         "type": "command",
         "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .kiro/hooks/scripts/progressive-commit.ps1"
-      }
+      },
+      "timeout": 30
     }
   ]
 }

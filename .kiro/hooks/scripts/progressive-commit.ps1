@@ -17,9 +17,19 @@ if ([string]::IsNullOrWhiteSpace($gitName) -or [string]::IsNullOrWhiteSpace($git
 }
 
 # Respects .gitignore and does nothing when no versionable change exists.
+git diff --check
+if ($LASTEXITCODE -ne 0) {
+    throw 'Whitespace errors must be fixed before creating a progressive commit.'
+}
+
 git add --all
 if ($LASTEXITCODE -ne 0) {
     throw 'Could not stage changes for the progressive commit.'
+}
+
+git diff --cached --check
+if ($LASTEXITCODE -ne 0) {
+    throw 'Staged whitespace errors must be fixed before creating a progressive commit.'
 }
 
 git diff --cached --quiet
