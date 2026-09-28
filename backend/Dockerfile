@@ -8,7 +8,8 @@ WORKDIR /workspace
 # Copy the Maven wrapper first so its layer caches independently of source.
 COPY .mvn/ .mvn/
 COPY mvnw pom.xml ./
-RUN chmod +x mvnw && ./mvnw -B -q dependency:go-offline
+# The wrapper is versioned from Windows as well; normalize CRLF for /bin/sh.
+RUN sed -i 's/\r$//' mvnw && chmod +x mvnw && ./mvnw -B -q dependency:go-offline
 
 # Copy sources and build. Tests run in CI; skip them here for a fast image build.
 COPY src/ src/
