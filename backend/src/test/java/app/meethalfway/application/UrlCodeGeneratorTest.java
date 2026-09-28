@@ -7,6 +7,8 @@ import java.util.HashSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
+import app.meethalfway.meetings.application.UrlCodeGenerator;
+
 /**
  * Unit tests for {@link UrlCodeGenerator} (Task 9.2): codes are the expected
  * length, use only the unambiguous alphabet, and collisions are avoided via the

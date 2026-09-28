@@ -53,6 +53,15 @@ const en = {
     minutes: 'min',
     empty: 'No results yet. Create a meeting to see recommendations.',
   },
+  map: {
+    heading: 'Map',
+    loading: 'Calculating meeting points…',
+    error: 'The map could not be shown because the request failed.',
+    empty: 'No meeting points to display yet.',
+    excludedHeading: 'Some points were left off the map:',
+    excludedCandidate: 'Candidate “{id}” has an out-of-range coordinate',
+    excludedOrigin: 'Origin “{id}” has an out-of-range coordinate',
+  },
   outlier: {
     heading: 'One participant is far from the others',
     explanation:
@@ -130,6 +139,15 @@ const es: MessageSchema = {
     stdDev: 'Dispersión del tiempo de viaje',
     minutes: 'min',
     empty: 'Aún no hay resultados. Crea una reunión para ver recomendaciones.',
+  },
+  map: {
+    heading: 'Mapa',
+    loading: 'Calculando puntos de encuentro…',
+    error: 'No se pudo mostrar el mapa porque la solicitud falló.',
+    empty: 'Aún no hay puntos de encuentro para mostrar.',
+    excludedHeading: 'Algunos puntos quedaron fuera del mapa:',
+    excludedCandidate: 'El candidato «{id}» tiene una coordenada fuera de rango',
+    excludedOrigin: 'El origen «{id}» tiene una coordenada fuera de rango',
   },
   outlier: {
     heading: 'Un participante está lejos de los demás',

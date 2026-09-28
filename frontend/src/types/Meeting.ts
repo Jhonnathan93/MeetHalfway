@@ -43,6 +43,24 @@ export interface StrategyResult {
   sumTime: number
   maxTime: number
   stdDev: number
+  /** Stable candidate identifier equal to this result's strategy key. */
+  candidateId: StrategyKey
+  /** Marks the strategy's single selected (recommended) point. */
+  recommended: boolean
+}
+
+/**
+ * A non-blocking coordinate warning (`CoordinateWarningResponse`). Reported
+ * when a candidate point or participant origin is excluded/flagged; the
+ * warning identifies the point rather than silently dropping it.
+ */
+export interface CoordinateWarning {
+  kind: 'CANDIDATE' | 'PARTICIPANT_ORIGIN'
+  /** candidateId or participantId the warning refers to. */
+  reference: string
+  lat: number
+  lng: number
+  reason: string
 }
 
 /** The three strategy results (`StrategyResultsResponse`). */
@@ -66,6 +84,8 @@ export interface Recommendation {
   results: StrategyResults
   /** Present only when at least one outlier was detected; otherwise null. */
   outlierTradeoff: OutlierTradeoff | null
+  /** Coordinate warnings for excluded/flagged points; may be empty. */
+  warnings: CoordinateWarning[]
 }
 
 /** A meeting as returned by create/get/edit (`MeetingResponse`). */

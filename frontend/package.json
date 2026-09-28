@@ -12,10 +12,12 @@
     "typecheck": "vue-tsc --noEmit"
   },
   "dependencies": {
+    "leaflet": "^1.9.4",
     "vue": "3.5.13",
     "vue-i18n": "9.14.2"
   },
   "devDependencies": {
+    "@types/leaflet": "^1.9.12",
     "@vitejs/plugin-vue": "5.2.1",
     "@vue/test-utils": "2.4.6",
     "fast-check": "3.23.2",

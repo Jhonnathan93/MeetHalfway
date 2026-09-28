@@ -8,11 +8,12 @@ import OutlierTradeoffPanel from './OutlierTradeoffPanel.vue'
 import LanguageSelector from './LanguageSelector.vue'
 import AddressSearchBox from './AddressSearchBox.vue'
 import MeetingForm from './MeetingForm.vue'
-import * as meetingApi from '@/api/meetingApi'
+import * as geocoding from '@/api/geocoding'
 import type {
   Coordinate,
   MeetingRequest,
   OutlierTradeoff,
+  StrategyKey,
   StrategyResult,
   StrategyResults,
 } from '@/types/Meeting'
@@ -26,20 +27,22 @@ function makeI18n(locale: Locale = 'es') {
   })
 }
 
-function strategy(sum: number): StrategyResult {
+function strategy(sum: number, candidateId: StrategyKey): StrategyResult {
   return {
     point: { lat: 6.25, lng: -75.56 },
     perParticipant: { a: 10, b: 20 },
     sumTime: sum,
     maxTime: 20,
     stdDev: 5,
+    candidateId,
+    recommended: true,
   }
 }
 
 const results: StrategyResults = {
-  fastest: strategy(30),
-  minimax: strategy(32),
-  fairest: strategy(34),
+  fastest: strategy(30, 'fastest'),
+  minimax: strategy(32, 'minimax'),
+  fairest: strategy(34, 'fairest'),
 }
 
 describe('StrategyComparisonView', () => {
@@ -117,7 +120,7 @@ describe('dark mode default', () => {
 describe('MeetingForm address resolution', () => {
   it('resolves a selected suggestion to real coordinates and submits them', async () => {
     const coordinate: Coordinate = { lat: 6.21, lng: -75.57 }
-    vi.spyOn(meetingApi, 'resolveAddress').mockResolvedValue(coordinate)
+    vi.spyOn(geocoding, 'resolveAddress').mockResolvedValue(coordinate)
 
     const wrapper = mount(MeetingForm, {
       global: { plugins: [makeI18n('en')] },
@@ -143,7 +146,7 @@ describe('MeetingForm address resolution', () => {
   })
 
   it('does not fabricate a location when resolution fails', async () => {
-    vi.spyOn(meetingApi, 'resolveAddress').mockResolvedValue(null)
+    vi.spyOn(geocoding, 'resolveAddress').mockResolvedValue(null)
 
     const wrapper = mount(MeetingForm, {
       global: { plugins: [makeI18n('en')] },

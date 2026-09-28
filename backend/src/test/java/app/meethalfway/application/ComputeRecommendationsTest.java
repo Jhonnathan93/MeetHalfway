@@ -3,22 +3,24 @@ package app.meethalfway.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import app.meethalfway.domain.engine.RecommendationEngine;
-import app.meethalfway.domain.model.Coordinate;
-import app.meethalfway.domain.model.EngineConfig;
-import app.meethalfway.domain.model.Meeting;
-import app.meethalfway.domain.model.MeetingInput;
-import app.meethalfway.domain.model.Minutes;
-import app.meethalfway.domain.model.OutlierRule;
-import app.meethalfway.domain.model.ParticipantId;
-import app.meethalfway.domain.model.ParticipantInput;
-import app.meethalfway.domain.model.RecommendationOutcome;
-import app.meethalfway.domain.model.RoutingError;
-import app.meethalfway.domain.model.ServiceBounds;
-import app.meethalfway.domain.model.StrategyResult;
-import app.meethalfway.domain.model.StrategyResults;
-import app.meethalfway.domain.model.TransportMode;
-import app.meethalfway.domain.port.RoutingProvider;
+import app.meethalfway.meetings.domain.engine.RecommendationEngine;
+import app.meethalfway.shared.domain.Coordinate;
+import app.meethalfway.meetings.domain.model.EngineConfig;
+import app.meethalfway.meetings.domain.model.Meeting;
+import app.meethalfway.meetings.domain.model.MeetingInput;
+import app.meethalfway.shared.domain.Minutes;
+import app.meethalfway.meetings.domain.model.OutlierRule;
+import app.meethalfway.shared.domain.ParticipantId;
+import app.meethalfway.meetings.domain.model.ParticipantInput;
+import app.meethalfway.meetings.domain.model.RecommendationOutcome;
+import app.meethalfway.meetings.domain.model.RoutingError;
+import app.meethalfway.meetings.domain.model.ServiceBounds;
+import app.meethalfway.meetings.domain.model.StrategyResult;
+import app.meethalfway.meetings.domain.model.StrategyResults;
+import app.meethalfway.shared.domain.TransportMode;
+import app.meethalfway.routing.domain.port.RoutingProvider;
+import app.meethalfway.meetings.application.ComputeRecommendations;
+
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +32,7 @@ import org.junit.jupiter.api.Test;
  * Unit tests for {@link ComputeRecommendations} (Task 11.2, Requirements 6, 9.3).
  *
  * <p>Uses a stub {@link RecommendationEngine} to drive both outcome branches
- * deterministically and the in-memory {@link app.meethalfway.domain.port.MeetingRepository}
+ * deterministically and the in-memory {@link app.meethalfway.meetings.domain.model.MeetingRepository}
  * fake to observe persistence:
  * <ul>
  *   <li>a {@code Success} is stored onto the meeting;</li>

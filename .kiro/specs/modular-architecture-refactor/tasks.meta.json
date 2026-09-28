@@ -1,0 +1,638 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Establish target module package skeletons": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610414702
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610431238
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790611015604
+      }
+    ],
+    "2.1 Add RouteRegistry and RouteRegistryVerifier, relocate core API infra into shared/web": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610414836
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790611020782
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790611558353
+      }
+    ],
+    "2.2 Write RouteRegistryVerifier overlap startup-failure test": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610414992
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790611563919
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790611823102
+      }
+    ],
+    "2.3 Write Route_Registry exposure integration test": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610415089
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790611564149
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790611824498
+      }
+    ],
+    "2.4 Run mvn verify": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610415175
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790611829489
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790611996453
+      }
+    ],
+    "3.1 Relocate meetings web, application, and persistence into meetings module": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610415311
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790612000913
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790612967979
+      }
+    ],
+    "3.2 Run mvn verify": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610415467
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790612971773
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790613372788
+      }
+    ],
+    "4.1 Extract LocationController and relocate geocoding port/adapter into locations module": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610415558
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790613377936
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790614431092
+      }
+    ],
+    "4.2 Run mvn verify": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610415665
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790614435329
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790614525125
+      }
+    ],
+    "5.1 Move engine, cross-module primitives, and routing port/adapter into target modules": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610415862
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790614530640
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790615530543
+      }
+    ],
+    "5.2 Verify preserved property tests pass after relocation (Properties 1–5 + preserved suite)": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610415975
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790615535114
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790615628959
+      }
+    ],
+    "5.3 Run mvn verify": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610416098
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790615633039
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790615835113
+      }
+    ],
+    "6.1 Add module-boundary, cycle, and controller-restriction rules to ArchitectureRulesTest": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610416206
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790615840248
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790617295848
+      }
+    ],
+    "6.2 Confirm rules fail on injected violations and pass on real code": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610416309
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790617301353
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790617450104
+      }
+    ],
+    "6.3 Run mvn verify": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610416436
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790617455505
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790617753911
+      }
+    ],
+    "7.1 Add candidateId/recommended and warnings; populate in WebMapper": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610416546
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790617759398
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618103064
+      }
+    ],
+    "7.2 Write WebMapper unit tests for display metadata": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610416654
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618111121
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618836782
+      }
+    ],
+    "7.3 Write property test for display-metadata completeness": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610416747
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618111760
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618837642
+      }
+    ],
+    "7.4 Write property test for out-of-range candidate exclusion transparency": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610416871
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618112618
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618839132
+      }
+    ],
+    "7.5 Write property test for out-of-range participant origin warnings": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610416990
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618112985
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618840988
+      }
+    ],
+    "7.6 Run mvn verify": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610417095
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618845911
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618983070
+      }
+    ],
+    "8.1 Mirror additive types and create shared ApiClient + domain clients": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610417205
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618988250
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790619935094
+      }
+    ],
+    "8.2 Write Vitest tests for ApiClient and domain client modules": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610417339
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790619943787
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620185895
+      }
+    ],
+    "8.3 Run vitest --run and type-check": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610417459
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620190714
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620239546
+      }
+    ],
+    "9.1 Switch imports to domain client modules and remove ad-hoc fetch": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610417677
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620246467
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620357184
+      }
+    ],
+    "9.2 Run vitest --run and type-check": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610417800
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620357935
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620398183
+      }
+    ],
+    "10.1 Add Leaflet deps and implement useMeetingMap + MapView, slot into App.vue": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610417962
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620405296
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620750615
+      }
+    ],
+    "10.2 Write Vitest @vue/test-utils tests for MapView": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610418098
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620753621
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790621090250
+      }
+    ],
+    "10.3 Run vitest --run and type-check": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610418225
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790621091192
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790621140361
+      }
+    ],
+    "11.1 Delete the flat shim and now-unused code": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610418356
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790621146373
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790621247083
+      }
+    ],
+    "11.2 Run vitest --run, type-check, and build": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610418535
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790621248513
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790621331610
+      }
+    ],
+    "12.1 Add springdoc-openapi and assert documented contract matches endpoints": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610418622
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790621336994
+      }
+    ],
+    "13.1 Run full backend and frontend gates and confirm preserved coverage": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790610418743
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790622442609
+      },
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790623193069
+      }
+    ],
+    "2. Introduce Route_Registry and relocate shared/core API infra": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790611996605
+      }
+    ],
+    "3. Move meetings code into the meetings module": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790613373047
+      }
+    ],
+    "4. Split geocoding into the locations module": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790614525368
+      }
+    ],
+    "5. Relocate engine/domain into meetings and shared without behavior change": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790615835369
+      }
+    ],
+    "6. Extend ArchUnit architecture rules for the new modules": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790617754265
+      }
+    ],
+    "7. Add additive display metadata to backend DTOs": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790618983352
+      }
+    ],
+    "8. Add frontend ApiClient and domain client modules with re-export shim": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620240149
+      }
+    ],
+    "9. Migrate App.vue and components to typed domain clients": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790620398577
+      }
+    ],
+    "10. Add Leaflet MapView and composable": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790621140537
+      }
+    ],
+    "11. Remove the meetingApi.ts shim and dead code": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790621332145
+      }
+    ],
+    "13. Final behavior-preservation verification": [
+      {
+        "executionId": "24017c07-d712-4659-a71e-184bc809e3e1",
+        "chatSessionId": "sess_94b66df9-6f59-4643-a3f3-21e659e66e93",
+        "timestamp": 1790623193314
+      }
+    ]
+  }
+}

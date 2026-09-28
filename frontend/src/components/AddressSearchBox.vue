@@ -7,7 +7,7 @@
  */
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { autocompleteAddress } from '@/api/meetingApi'
+import { autocompleteAddress } from '@/api/geocoding'
 import type { AddressSuggestion } from '@/types/Meeting'
 
 const props = defineProps<{

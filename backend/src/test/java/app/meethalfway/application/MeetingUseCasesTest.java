@@ -3,12 +3,18 @@ package app.meethalfway.application;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import app.meethalfway.application.CreateMeeting.NewParticipant;
-import app.meethalfway.domain.model.Coordinate;
-import app.meethalfway.domain.model.Meeting;
-import app.meethalfway.domain.model.ParticipantId;
-import app.meethalfway.domain.model.ParticipantInput;
-import app.meethalfway.domain.model.TransportMode;
+import app.meethalfway.shared.domain.Coordinate;
+import app.meethalfway.meetings.domain.model.Meeting;
+import app.meethalfway.shared.domain.ParticipantId;
+import app.meethalfway.meetings.domain.model.ParticipantInput;
+import app.meethalfway.shared.domain.TransportMode;
+import app.meethalfway.meetings.application.CreateMeeting;
+import app.meethalfway.meetings.application.DeleteMeeting;
+import app.meethalfway.meetings.application.EditMeeting;
+import app.meethalfway.meetings.application.GetMeeting;
+import app.meethalfway.meetings.application.UrlCodeGenerator;
+import app.meethalfway.meetings.application.CreateMeeting.NewParticipant;
+
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;

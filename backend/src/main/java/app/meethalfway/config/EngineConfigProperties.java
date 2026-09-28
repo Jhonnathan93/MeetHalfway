@@ -24,7 +24,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param maxSearchRadiusMeters maximum grid extent, in meters
  * @param epsilonMinutes       float-comparison tie tolerance (epsilon), in minutes
  * @param outlierMedianMultipleK the median-multiple {@code k} for the
- *                               {@link app.meethalfway.domain.model.OutlierRule.MedianMultiple}
+ *                               {@link app.meethalfway.meetings.domain.model.OutlierRule.MedianMultiple}
  *                               rule (Requirement 7.1). Pending calibration with
  *                               real data; a candidate value is {@code 2.0}. When
  *                               absent the composition root applies that default.

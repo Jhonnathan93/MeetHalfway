@@ -2,8 +2,8 @@ package app.meethalfway.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import app.meethalfway.domain.DomainConstants;
-import app.meethalfway.domain.model.EngineConfig;
+import app.meethalfway.meetings.domain.model.DomainConstants;
+import app.meethalfway.meetings.domain.model.EngineConfig;
 import java.lang.reflect.Method;
 import java.lang.reflect.RecordComponent;
 import java.util.Locale;

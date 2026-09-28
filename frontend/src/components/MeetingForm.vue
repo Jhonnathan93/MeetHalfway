@@ -16,7 +16,7 @@ import {
   type ParticipantInput,
   type TransportMode,
 } from '@/types/Meeting'
-import { resolveAddress } from '@/api/meetingApi'
+import { resolveAddress } from '@/api/geocoding'
 
 interface ParticipantDraft {
   name: string

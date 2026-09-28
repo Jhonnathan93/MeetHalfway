@@ -12,11 +12,9 @@ import MeetingForm from './components/MeetingForm.vue'
 import StrategyComparisonView from './components/StrategyComparisonView.vue'
 import OutlierTradeoffPanel from './components/OutlierTradeoffPanel.vue'
 import RoutingErrorNotice from './components/RoutingErrorNotice.vue'
-import {
-  RoutingFailureError,
-  computeRecommendations,
-  createMeeting,
-} from './api/meetingApi'
+import MapView, { type MapPhase } from './features/map/MapView.vue'
+import { computeRecommendations, createMeeting } from './api/meetings'
+import { RoutingFailureError } from './api/errors'
 import type { Meeting, MeetingRequest, Recommendation, RoutingFailure } from './types/Meeting'
 
 const { t } = useI18n()
@@ -33,6 +31,33 @@ const participantNames = computed<Record<string, string>>(() => {
     map[participant.id] = participant.name.length > 0 ? participant.name : participant.id
   }
   return map
+})
+
+/**
+ * The map's request phase, derived from the same refs that drive the results
+ * section: loading while a request is in flight, error on any failure (generic
+ * or routing), otherwise success. The map clears stale markers in non-success
+ * phases so a previous response is never shown as current (R11.9).
+ */
+const mapPhase = computed<MapPhase>(() => {
+  if (submitting.value) {
+    return 'loading'
+  }
+  if (errorMessage.value.length > 0 || routingFailure.value) {
+    return 'error'
+  }
+  return 'success'
+})
+
+/** The generic error text handed to the map's error state, when present. */
+const mapErrorMessage = computed<string>(() => {
+  if (errorMessage.value.length > 0) {
+    return errorMessage.value
+  }
+  if (routingFailure.value) {
+    return routingFailure.value.message
+  }
+  return ''
 })
 
 async function onSubmit(request: MeetingRequest): Promise<void> {
@@ -87,6 +112,14 @@ async function onSubmit(request: MeetingRequest): Promise<void> {
         />
         <p v-else-if="errorMessage" class="app-error" role="alert">{{ errorMessage }}</p>
         <p v-else-if="!recommendation" class="app-empty">{{ t('results.empty') }}</p>
+
+        <MapView
+          :phase="mapPhase"
+          :results="recommendation ? recommendation.results : null"
+          :participants="meeting ? meeting.participants : []"
+          :warnings="recommendation ? recommendation.warnings : []"
+          :error-message="mapErrorMessage"
+        />
       </section>
 
       <aside class="app-sidebar" aria-label="sidebar">

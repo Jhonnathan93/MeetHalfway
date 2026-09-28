@@ -11,36 +11,38 @@ import org.springframework.context.annotation.Configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import app.meethalfway.adapters.geocoding.GeocodingAdapter;
-import app.meethalfway.adapters.geocoding.HttpExchange;
-import app.meethalfway.adapters.geocoding.JdkHttpExchange;
-import app.meethalfway.adapters.persistence.JpaMeetingRepository;
-import app.meethalfway.adapters.persistence.MeetingMapper;
-import app.meethalfway.adapters.persistence.SpringDataMeetingRepository;
-import app.meethalfway.adapters.routing.OsrmRoutingAdapter;
-import app.meethalfway.adapters.web.CorsConfigurer;
-import app.meethalfway.adapters.web.RateLimitFilter;
-import app.meethalfway.adapters.web.dto.WebMapper;
-import app.meethalfway.application.ComputeRecommendations;
-import app.meethalfway.application.CreateMeeting;
-import app.meethalfway.application.DeleteMeeting;
-import app.meethalfway.application.EditMeeting;
-import app.meethalfway.application.GetMeeting;
-import app.meethalfway.application.UrlCodeGenerator;
-import app.meethalfway.domain.engine.CandidateGenerator;
-import app.meethalfway.domain.engine.ConfiguredOutlierDetector;
-import app.meethalfway.domain.engine.DefaultRecommendationEngine;
-import app.meethalfway.domain.engine.GridCandidateGenerator;
-import app.meethalfway.domain.engine.MeetingValidator;
-import app.meethalfway.domain.engine.MetricCalculator;
-import app.meethalfway.domain.engine.OutlierDetector;
-import app.meethalfway.domain.engine.RecommendationEngine;
-import app.meethalfway.domain.model.EngineConfig;
-import app.meethalfway.domain.model.OutlierRule;
-import app.meethalfway.domain.model.ServiceBounds;
-import app.meethalfway.domain.port.GeocodingProvider;
-import app.meethalfway.domain.port.MeetingRepository;
-import app.meethalfway.domain.port.RoutingProvider;
+import app.meethalfway.routing.adapters.routing.OsrmRoutingAdapter;
+import app.meethalfway.meetings.domain.engine.CandidateGenerator;
+import app.meethalfway.meetings.domain.engine.ConfiguredOutlierDetector;
+import app.meethalfway.meetings.domain.engine.DefaultRecommendationEngine;
+import app.meethalfway.meetings.domain.engine.GridCandidateGenerator;
+import app.meethalfway.meetings.domain.engine.MeetingValidator;
+import app.meethalfway.meetings.domain.engine.MetricCalculator;
+import app.meethalfway.meetings.domain.engine.OutlierDetector;
+import app.meethalfway.meetings.domain.engine.RecommendationEngine;
+import app.meethalfway.meetings.domain.model.EngineConfig;
+import app.meethalfway.meetings.domain.model.OutlierRule;
+import app.meethalfway.meetings.domain.model.ServiceBounds;
+import app.meethalfway.meetings.domain.model.MeetingRepository;
+import app.meethalfway.routing.domain.port.RoutingProvider;
+import app.meethalfway.locations.adapters.geocoding.GeocodingAdapter;
+import app.meethalfway.locations.adapters.geocoding.HttpExchange;
+import app.meethalfway.locations.adapters.geocoding.JdkHttpExchange;
+import app.meethalfway.locations.domain.port.GeocodingProvider;
+import app.meethalfway.locations.web.dto.LocationMapper;
+import app.meethalfway.meetings.adapters.persistence.JpaMeetingRepository;
+import app.meethalfway.meetings.adapters.persistence.MeetingMapper;
+import app.meethalfway.meetings.adapters.persistence.SpringDataMeetingRepository;
+import app.meethalfway.meetings.application.ComputeRecommendations;
+import app.meethalfway.meetings.application.CreateMeeting;
+import app.meethalfway.meetings.application.DeleteMeeting;
+import app.meethalfway.meetings.application.EditMeeting;
+import app.meethalfway.meetings.application.GetMeeting;
+import app.meethalfway.meetings.application.UrlCodeGenerator;
+import app.meethalfway.meetings.web.dto.WebMapper;
+import app.meethalfway.shared.web.CorsConfigurer;
+import app.meethalfway.shared.web.RateLimitFilter;
+import app.meethalfway.shared.web.RouteRegistryVerifier;
 
 /**
  * Composition root for explicit Dependency Injection.
@@ -261,12 +263,34 @@ public class BeanConfiguration {
     // ---- Web adapter cross-cutting wiring (Tasks 12.1–12.3) -------------
 
     /**
+     * Startup guard that fails application startup with a clear error when two
+     * {@code RouteRegistry} base paths overlap (Requirement 3.4). Wired via
+     * constructor injection; it runs at startup as an {@code ApplicationRunner}
+     * so an accidental overlap can never ship silently.
+     *
+     * @return the route-registry overlap verifier
+     */
+    @Bean
+    RouteRegistryVerifier routeRegistryVerifier() {
+        return new RouteRegistryVerifier();
+    }
+
+    /**
      * Stateless mapper between web DTOs, application inputs, and domain types.
      * Shared as a singleton; it holds no state.
      */
     @Bean
     WebMapper webMapper() {
         return new WebMapper();
+    }
+
+    /**
+     * Stateless mapper for the locations module's geocoding responses. Shared as
+     * a singleton; it holds no state. Injected into {@code LocationController}.
+     */
+    @Bean
+    LocationMapper locationMapper() {
+        return new LocationMapper();
     }
 
     /**
