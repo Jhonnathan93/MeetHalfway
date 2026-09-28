@@ -5,6 +5,7 @@ import java.time.Clock;
 import java.time.Duration;
 
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -17,6 +18,9 @@ import app.meethalfway.adapters.persistence.JpaMeetingRepository;
 import app.meethalfway.adapters.persistence.MeetingMapper;
 import app.meethalfway.adapters.persistence.SpringDataMeetingRepository;
 import app.meethalfway.adapters.routing.OsrmRoutingAdapter;
+import app.meethalfway.adapters.web.CorsConfigurer;
+import app.meethalfway.adapters.web.RateLimitFilter;
+import app.meethalfway.adapters.web.dto.WebMapper;
 import app.meethalfway.application.ComputeRecommendations;
 import app.meethalfway.application.CreateMeeting;
 import app.meethalfway.application.DeleteMeeting;
