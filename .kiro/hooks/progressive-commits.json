@@ -3,13 +3,12 @@
   "hooks": [
     {
       "name": "Progressive conventional commits",
-      "description": "Creates one Conventional Commit checkpoint when an agent task ends.",
+      "description": "Creates one precise Conventional Commit after reviewing the task's changes.",
       "trigger": "Stop",
       "action": {
-        "type": "command",
-        "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .kiro/hooks/scripts/progressive-commit.ps1"
-      },
-      "timeout": 30
+        "type": "agent",
+        "prompt": "Before finishing, inspect git status and the diff for changes made during this task. If there are versionable task changes, run git diff --check, stage only those files, and create exactly one commit with a concise, specific Conventional Commit message that describes the actual change (for example, feat(frontend): add meeting form validation). Choose the appropriate type and optional scope from the diff; never use a generic checkpoint message. Do not amend, push, force-push, or commit ignored files, secrets, or unrelated pre-existing changes. If no task changes exist, do nothing."
+      }
     }
   ]
 }
