@@ -1,0 +1,7 @@
+# Exclude local dependencies and build output so `npm ci` + `npm run build`
+# run cleanly inside the image from the lockfile and sources only.
+node_modules/
+dist/
+.vite/
+coverage/
+*.log

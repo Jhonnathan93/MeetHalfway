@@ -1,0 +1,9 @@
+# Keep the build context small and free of local/build artifacts. The image
+# rebuilds everything from source with the Maven wrapper.
+target/
+bin/
+cp.txt
+.jqwik-database
+*.log
+# Local toolchains are never needed inside the image.
+.buildtools/
