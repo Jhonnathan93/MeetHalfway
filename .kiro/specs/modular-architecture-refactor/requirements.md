@@ -55,7 +55,7 @@ The following are explicitly **out of scope** and MUST NOT be introduced: authen
 2. THE Backend SHALL expose functionality only through the REST API under `/api/v1` and SHALL NOT reference any Frontend source module.
 3. THE Frontend SHALL communicate with the Backend only through HTTP requests to the `/api/v1` REST API.
 4. IF any Frontend source module imports, references, or bundles Backend implementation code, THEN THE Frontend build SHALL fail with an error identifying the offending import path.
-5. THE Architecture_Test SHALL enforce that the Backend Controller layer depends on Use_Case services and that Use_Case services depend only on domain models and Provider_Ports, and SHALL fail with an error identifying the offending class when an inner layer depends on an outer layer.
+5. IF an inner layer depends on an outer layer (for example a Use_Case depending on a Controller, adapter, or configuration), THEN THE Architecture_Test SHALL always fail and SHALL report an error identifying the offending class, with no exclusions, scoping gaps, or deferred detection that would allow the violation to pass.
 
 ### Requirement 2: Backend organized by domain module
 
@@ -173,8 +173,9 @@ The following are explicitly **out of scope** and MUST NOT be introduced: authen
 4. THE Backend SHALL mark exactly one Candidate_Point per Strategy as the Recommended_Point using an explicit recommended indicator so the Frontend can distinguish it from alternatives.
 5. WHEN participant coordinates are present in the meeting, THE Backend SHALL include each Participant_Origin latitude and longitude in the response.
 6. THE Backend SHALL return every latitude in the inclusive range -90 to 90 and every longitude in the inclusive range -180 to 180.
-7. IF any computed Candidate_Point, Recommended_Point, or Participant_Origin coordinate falls outside the inclusive latitude range -90 to 90 or longitude range -180 to 180, THEN THE Backend SHALL reject the response with an error indicating the specific out-of-range coordinate and SHALL NOT return the invalid coordinate silently.
+7. IF a computed Candidate_Point or Recommended_Point coordinate falls outside the inclusive latitude range -90 to 90 or longitude range -180 to 180, THEN THE Backend SHALL exclude only that invalid Candidate_Point from the response, SHALL return the remaining valid Candidate_Points, and SHALL include a warning identifying the specific out-of-range coordinate rather than silently omitting it or rejecting the entire response.
 8. THE Backend SHALL preserve the existing recommendation response contract as defined by Behavior_Preservation and SHALL add the display metadata required by this requirement only as additional fields, without removing or altering existing fields.
+9. IF a Participant_Origin coordinate falls outside the inclusive latitude range -90 to 90 or longitude range -180 to 180, THEN THE Backend SHALL include a warning identifying that specific out-of-range Participant_Origin rather than silently omitting it.
 
 ### Requirement 11: Leaflet map visualization of results
 
@@ -186,7 +187,7 @@ The following are explicitly **out of scope** and MUST NOT be introduced: authen
 2. THE Map_View SHALL render the Recommended_Point marker with a visual treatment distinct from alternative Candidate_Point markers.
 3. WHEN Candidate_Points are displayed, THE Map_View SHALL fit the map bounds to include every displayed marker.
 4. WHEN a user selects a Candidate_Point marker, THE Map_View SHALL display that candidate's identifier and its score/metric metadata.
-5. WHEN Participant_Origin coordinates are present in the response, THE Map_View SHALL render one origin marker per participant with a visual treatment distinct from Candidate_Point markers, so that a meeting of 2 to 10 participants renders between 2 and 10 origin markers.
+5. WHEN Participant_Origin coordinates are present in the response for a meeting of 2 to 10 participants, THE Map_View SHALL render one origin marker per participant with a visual treatment distinct from Candidate_Point markers, so that between 2 and 10 origin markers are rendered; meetings exceeding the 10-participant cap are rejected or truncated upstream, and THE Map_View is not required to render origin markers for participants beyond the cap.
 6. IF a recommendation response contains zero Candidate_Points, THEN THE Map_View SHALL display an explicit empty-state message and SHALL NOT render meeting markers.
 7. IF a Candidate_Point or Participant_Origin has a latitude outside the inclusive range -90 to 90 or a longitude outside the inclusive range -180 to 180, THEN THE Map_View SHALL exclude that point from rendering and SHALL display a non-blocking notice identifying the excluded point.
 8. WHILE a recommendation request is in progress, THE Map_View SHALL display a loading state.
@@ -199,7 +200,7 @@ The following are explicitly **out of scope** and MUST NOT be introduced: authen
 
 #### Acceptance Criteria
 
-1. THE System SHALL treat Behavior_Preservation as a hard constraint so that existing endpoints, HTTP methods, request and response contracts, and calculation results remain unchanged unless a change is explicitly documented.
+1. THE System SHALL treat Behavior_Preservation as a hard constraint so that existing endpoints, HTTP methods, request and response contracts, and calculation results remain unchanged unless a change is explicitly documented; WHEN no such change occurs, THE System SHALL NOT require any documentation, and the absence of documentation SHALL NOT constitute a violation.
 2. WHEN the refactor is applied as an increment, THE System SHALL keep the application in a buildable and runnable state at the end of that increment.
 3. THE Backend SHALL keep every currently passing automated test passing, unless a specific test is explicitly documented as obsolete due to a documented contract change.
 4. IF a change alters an externally observable contract, THEN THE System SHALL document the change and its rationale before that change is considered complete.
@@ -213,7 +214,7 @@ The following are explicitly **out of scope** and MUST NOT be introduced: authen
 
 1. THE System SHALL support unit tests that exercise Use_Case services, scoring logic, and geographic/coordinate Domain_Utilities with all HTTP and persistence dependencies replaced by test doubles, such that no test in this set opens a network socket or database connection.
 2. WHEN a controller/API test submits a request, THE System SHALL support verifying request validation, response HTTP status code, success response contract, and error response contract, and SHALL support verifying that the Controller delegates to its Use_Case exactly once per valid request.
-3. IF a controller/API test submits a request that fails input validation, THEN THE System SHALL support asserting that the request is rejected with a client-error status, that an error response indicating the specific validation failure is returned, and that no Use_Case invocation occurs.
+3. THE System SHALL include a controller/API test that submits a request failing input validation and asserts that the request is rejected with a client-error status, that an error response identifying the specific validation failure is returned, and that no Use_Case invocation occurs; this test MUST exist and MUST pass, and its absence or failure SHALL be treated as a defect to fix.
 4. THE System SHALL support integration tests verifying that every route declared in the Route_Registry is exposed exactly as declared (path, method) and that each exposed route is wired to its corresponding service.
 5. THE Frontend SHALL support tests for the API_Client and Domain_Client_Modules, Map_View rendering, candidate rendering, and each of the loading, error, and empty display states, such that every one of these three states has at least one test asserting its rendered output.
 6. THE System SHALL preserve all existing Property_Tests (TieBreakTotality, RoutingFailureTransparency, ResultsCompleteness, OutlierTransparency, OutlierDetection, MinutesProperty, MeetingInputParticipantCount, TransportModeValidation) and SHALL maintain Property_Tests for the following geospatial/mathematical invariants: results are independent of participant input ordering; every output coordinate has latitude within -90 to 90 degrees inclusive and longitude within -180 to 180 degrees inclusive; every reported travel time is greater than or equal to zero; the Minimax selection has a maximum per-participant travel time less than or equal to that of every other feasible Candidate_Point; and the Fastest selection has an aggregate travel time less than or equal to that of every other feasible Candidate_Point.
