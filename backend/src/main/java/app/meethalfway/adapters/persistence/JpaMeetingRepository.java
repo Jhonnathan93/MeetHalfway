@@ -6,6 +6,7 @@ import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * JPA/PostgreSQL implementation of the domain {@link MeetingRepository} port
@@ -18,7 +19,7 @@ import java.util.UUID;
  * <p>Access is by {@code urlCode} alone; there is no identity control
  * (Requirement 9.2).
  */
-public final class JpaMeetingRepository implements MeetingRepository {
+public class JpaMeetingRepository implements MeetingRepository {
 
     private final SpringDataMeetingRepository repository;
     private final MeetingMapper mapper;
@@ -57,6 +58,7 @@ public final class JpaMeetingRepository implements MeetingRepository {
      * @return the persisted meeting mapped back to the domain
      */
     @Override
+    @Transactional
     public Meeting save(Meeting meeting) {
         if (meeting == null) {
             throw new IllegalArgumentException("meeting must not be null");
@@ -77,11 +79,13 @@ public final class JpaMeetingRepository implements MeetingRepository {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public Optional<Meeting> findByUrlCode(String urlCode) {
         return repository.findByUrlCode(urlCode).map(mapper::toDomain);
     }
 
     @Override
+    @Transactional
     public void deleteByUrlCode(String urlCode) {
         repository.deleteByUrlCode(urlCode);
     }
