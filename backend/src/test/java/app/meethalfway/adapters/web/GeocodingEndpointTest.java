@@ -90,4 +90,27 @@ class GeocodingEndpointTest {
                 .andExpect(jsonPath("$[0].lng").doesNotExist())
                 .andExpect(jsonPath("$[0].apiKey").doesNotExist());
     }
+
+    @Test
+    void resolveReturnsCoordinateForAKnownAddress() throws Exception {
+        mockMvc.perform(get("/api/v1/geocode/resolve").param("q", "El Poblado, Medellin"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lat").value(6.21))
+                .andExpect(jsonPath("$.lng").value(-75.57));
+    }
+
+    @Test
+    void resolveReturns422WithReasonForAnUnknownAddress() throws Exception {
+        mockMvc.perform(get("/api/v1/geocode/resolve").param("q", "nowhere-xyz-address"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.code").value("GEOCODE_NOT_FOUND"))
+                .andExpect(jsonPath("$.message").isNotEmpty());
+    }
+
+    @Test
+    void resolveResponseNeverExposesAProviderKey() throws Exception {
+        mockMvc.perform(get("/api/v1/geocode/resolve").param("q", "El Poblado, Medellin"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.apiKey").doesNotExist());
+    }
 }

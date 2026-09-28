@@ -262,7 +262,7 @@ Conventions:
 - [x] 13. Checkpoint - backend API complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 14. Implement the frontend (Vue 3 + TS)
+- [x] 14. Implement the frontend (Vue 3 + TS)
   - [x] 14.1 Implement AddressSearchBox with autocomplete
     - Per-participant address entry backed by the geocoding autocomplete endpoint; no map-click selection
     - _Requirements: 9.7, 9.8_
@@ -279,10 +279,10 @@ Conventions:
     - ES/EN message catalogs, a language selector that switches interface language, and dark mode as the default and only MVP theme
     - _Requirements: 10.1, 10.3, 10.4, 10.5_
 
-  - [ ] 14.5 Wire frontend to the backend API and meeting lifecycle
+  - [x] 14.5 Wire frontend to the backend API and meeting lifecycle
     - Connect create/view/edit/delete and recommendation requests to `/api/v1`; render routing-error prompts asking to correct/remove a location
     - _Requirements: 6.2, 9.1, 9.2, 9.3, 9.4, 9.5, 11.1_
-    - NOTE (partial): Typed `/api/v1` client and create→compute→view flow + routing-error (422) rendering are implemented and wired in `App.vue`. BLOCKED on address→coordinate resolution: the backend exposes `GET /geocode/autocomplete` (returns `{description, placeId}` with no coordinate) but NO resolve endpoint, and `AddressSuggestion` carries no lat/lng. `MeetingForm` therefore cannot populate real participant coordinates from a chosen suggestion without fabricating them. Needs a backend `GET /api/v1/geocode/resolve?placeId=` (or `?q=`) returning a `Coordinate` (the `GeocodingProvider.resolve` port already exists; wire a controller endpoint), then finish `MeetingForm.onSelect` to store the resolved lat/lng.
+    - Done: typed `/api/v1` client + create→compute→view flow + routing-error (422) rendering wired in `App.vue`. Address→coordinate resolution closed the earlier gap: added backend `GET /api/v1/geocode/resolve?q=` (wires the existing `GeocodingProvider.resolve` port; 200 `Coordinate` or 422 with an actionable reason), plus `resolveAddress` in the frontend client. `MeetingForm.onSelect` resolves a chosen suggestion to real lat/lng and never fabricates a location — if resolution fails it prompts the user to correct the address. Covered by backend resolve tests (GeocodingEndpointTest) and frontend resolution tests (components.test.ts).
 
   - [x] 14.6 Write frontend property test for pure metric formatting
     - fast-check (min 100 iterations) for pure formatting logic (e.g., minutes/metric rendering) integrated with Vitest
@@ -292,7 +292,7 @@ Conventions:
     - Vitest + Vue Test Utils: dark-mode default, desktop-first layout, ES/EN switching, and absence of map-click selection
     - _Requirements: 9.8, 10.1, 10.2, 10.3, 10.4, 10.5_
 
-- [ ] 15. Final checkpoint - full stack integrated
+- [x] 15. Final checkpoint - full stack integrated
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

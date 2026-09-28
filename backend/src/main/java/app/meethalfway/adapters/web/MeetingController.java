@@ -3,10 +3,12 @@ package app.meethalfway.adapters.web;
 import app.meethalfway.adapters.web.dto.AddressSuggestionResponse;
 import app.meethalfway.adapters.web.dto.CreateMeetingRequest;
 import app.meethalfway.adapters.web.dto.EditMeetingRequest;
+import app.meethalfway.adapters.web.dto.ErrorResponse;
 import app.meethalfway.adapters.web.dto.MeetingResponse;
 import app.meethalfway.adapters.web.dto.RecommendationResponse;
 import app.meethalfway.adapters.web.dto.RoutingFailureResponse;
 import app.meethalfway.adapters.web.dto.WebMapper;
+import app.meethalfway.domain.port.GeocodeResult;
 import app.meethalfway.application.ComputeRecommendations;
 import app.meethalfway.application.CreateMeeting;
 import app.meethalfway.application.DeleteMeeting;
@@ -212,5 +214,28 @@ public class MeetingController {
             @RequestParam("q") String query) {
         List<AddressSuggestion> suggestions = geocodingProvider.autocomplete(query, engineConfig);
         return ResponseEntity.ok(webMapper.toSuggestionResponses(suggestions));
+    }
+
+    /**
+     * Resolves a chosen address (or suggestion label) to a precise coordinate
+     * (Requirement 9.7). Returns 200 with the coordinate when resolved, or 422
+     * with an actionable reason when the address could not be resolved so the
+     * Creator can correct it &mdash; never a silently wrong location. Provider
+     * keys are never exposed. The backend performs the resolution so no provider
+     * credential reaches the browser (Requirement 11.4).
+     *
+     * @param query the address text or suggestion label to resolve (query
+     *              parameter {@code q})
+     * @return 200 with the resolved coordinate, or 422 with the reason it failed
+     */
+    @GetMapping("/geocode/resolve")
+    public ResponseEntity<?> resolve(@RequestParam("q") String query) {
+        GeocodeResult result = geocodingProvider.resolve(query);
+        if (result instanceof GeocodeResult.Resolved resolved) {
+            return ResponseEntity.ok(webMapper.toCoordinateResponse(resolved.coordinate()));
+        }
+        GeocodeResult.NotFound notFound = (GeocodeResult.NotFound) result;
+        return ResponseEntity.unprocessableEntity()
+                .body(ErrorResponse.of("GEOCODE_NOT_FOUND", notFound.reason()));
     }
 }

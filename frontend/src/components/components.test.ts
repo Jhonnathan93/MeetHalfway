@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { createI18n } from 'vue-i18n'
 import { messages, type Locale, type MessageSchema } from '@/i18n/messages'
@@ -7,7 +7,15 @@ import StrategyComparisonView from './StrategyComparisonView.vue'
 import OutlierTradeoffPanel from './OutlierTradeoffPanel.vue'
 import LanguageSelector from './LanguageSelector.vue'
 import AddressSearchBox from './AddressSearchBox.vue'
-import type { OutlierTradeoff, StrategyResult, StrategyResults } from '@/types/Meeting'
+import MeetingForm from './MeetingForm.vue'
+import * as meetingApi from '@/api/meetingApi'
+import type {
+  Coordinate,
+  MeetingRequest,
+  OutlierTradeoff,
+  StrategyResult,
+  StrategyResults,
+} from '@/types/Meeting'
 
 function makeI18n(locale: Locale = 'es') {
   return createI18n<[MessageSchema], Locale>({
@@ -103,5 +111,53 @@ describe('dark mode default', () => {
   it('applies data-theme="dark" on the document root', () => {
     applyDefaultTheme()
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+  })
+})
+
+describe('MeetingForm address resolution', () => {
+  it('resolves a selected suggestion to real coordinates and submits them', async () => {
+    const coordinate: Coordinate = { lat: 6.21, lng: -75.57 }
+    vi.spyOn(meetingApi, 'resolveAddress').mockResolvedValue(coordinate)
+
+    const wrapper = mount(MeetingForm, {
+      global: { plugins: [makeI18n('en')] },
+      props: { mode: 'create' as const, submitting: false },
+    })
+
+    const boxes = wrapper.findAllComponents(AddressSearchBox)
+    expect(boxes.length).toBeGreaterThanOrEqual(2)
+    // Simulate choosing a suggestion in each participant's search box.
+    for (const box of boxes) {
+      box.vm.$emit('select', { description: 'El Poblado, Medellin', placeId: 'p1' })
+    }
+    await wrapper.vm.$nextTick()
+    await Promise.resolve()
+
+    await wrapper.find('form').trigger('submit.prevent')
+
+    const emitted = wrapper.emitted('submit')
+    expect(emitted).toBeTruthy()
+    const request = emitted?.[0]?.[0] as MeetingRequest
+    expect(request.participants.every((p) => p.lat === 6.21 && p.lng === -75.57)).toBe(true)
+    expect(request.transportMode).toBe('driving')
+  })
+
+  it('does not fabricate a location when resolution fails', async () => {
+    vi.spyOn(meetingApi, 'resolveAddress').mockResolvedValue(null)
+
+    const wrapper = mount(MeetingForm, {
+      global: { plugins: [makeI18n('en')] },
+      props: { mode: 'create' as const, submitting: false },
+    })
+
+    const box = wrapper.findComponent(AddressSearchBox)
+    box.vm.$emit('select', { description: 'nowhere', placeId: 'x' })
+    await wrapper.vm.$nextTick()
+    await Promise.resolve()
+
+    await wrapper.find('form').trigger('submit.prevent')
+
+    // No submit emitted because coordinates were never populated (no fabrication).
+    expect(wrapper.emitted('submit')).toBeFalsy()
   })
 })

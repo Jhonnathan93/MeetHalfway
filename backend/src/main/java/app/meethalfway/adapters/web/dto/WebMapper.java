@@ -184,7 +184,17 @@ public final class WebMapper {
                 tradeoff.avgTravelTimeExcluding());
     }
 
-    private CoordinateResponse toCoordinateResponse(Coordinate coordinate) {
+    /**
+     * Maps a domain {@link Coordinate} to its wire representation. Exposed so the
+     * geocoding resolve endpoint can return a resolved location directly.
+     *
+     * @param coordinate the domain coordinate; must not be null
+     * @return the coordinate response
+     */
+    public CoordinateResponse toCoordinateResponse(Coordinate coordinate) {
+        if (coordinate == null) {
+            throw new IllegalArgumentException("coordinate must not be null");
+        }
         return new CoordinateResponse(coordinate.lat(), coordinate.lng());
     }
 

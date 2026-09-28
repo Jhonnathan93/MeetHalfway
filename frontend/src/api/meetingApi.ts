@@ -6,6 +6,7 @@
  */
 import type {
   AddressSuggestion,
+  Coordinate,
   Meeting,
   MeetingRequest,
   Recommendation,
@@ -144,4 +145,28 @@ export async function autocompleteAddress(query: string): Promise<AddressSuggest
     return parseError(response)
   }
   return readJson<AddressSuggestion[]>(response)
+}
+
+/**
+ * Resolves a chosen address (or suggestion label) to a precise coordinate
+ * (GET /geocode/resolve?q=). Returns null when the backend responds 422
+ * "not found", so the caller can prompt the user to correct the address rather
+ * than proceeding with a wrong or fabricated location.
+ */
+export async function resolveAddress(query: string): Promise<Coordinate | null> {
+  const trimmed = query.trim()
+  if (trimmed.length === 0) {
+    return null
+  }
+  const response = await fetch(
+    `${API_BASE}/geocode/resolve?q=${encodeURIComponent(trimmed)}`,
+    { headers: { Accept: 'application/json' } },
+  )
+  if (response.status === 422) {
+    return null
+  }
+  if (!response.ok) {
+    return parseError(response)
+  }
+  return readJson<Coordinate>(response)
 }

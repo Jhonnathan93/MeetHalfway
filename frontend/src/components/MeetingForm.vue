@@ -16,7 +16,7 @@ import {
   type ParticipantInput,
   type TransportMode,
 } from '@/types/Meeting'
-import { autocompleteAddress } from '@/api/meetingApi'
+import { resolveAddress } from '@/api/meetingApi'
 
 interface ParticipantDraft {
   name: string
@@ -62,21 +62,21 @@ function removeParticipant(index: number): void {
 async function onSelect(index: number, suggestion: AddressSuggestion): Promise<void> {
   const draft = participants[index]
   draft.address = suggestion.description
-  // The suggestion carries no coordinate; resolve it through the backend by
-  // querying the description and taking the first match's implied location.
-  // The backend autocomplete returns description/placeId only, so we resolve
-  // via a follow-up autocomplete call keyed by the chosen description; if the
-  // backend later exposes a resolve endpoint this becomes a single call.
+  // Resolve the chosen address to a precise coordinate through the backend
+  // (GET /geocode/resolve). We never fabricate a location: if resolution fails
+  // the coordinates stay unset and validation prompts the user to correct it.
+  draft.lat = null
+  draft.lng = null
   try {
-    const matches = await autocompleteAddress(suggestion.description)
-    // Coordinates are not part of the suggestion contract; mark as selected so
-    // the form treats this participant as located. A dedicated resolve endpoint
-    // would populate exact lat/lng; until then we flag readiness via placeId.
-    draft.lat = draft.lat ?? 0
-    draft.lng = draft.lng ?? 0
-    void matches
+    const coordinate = await resolveAddress(suggestion.description)
+    if (coordinate !== null) {
+      draft.lat = coordinate.lat
+      draft.lng = coordinate.lng
+    } else {
+      validationMessage.value = t('form.missingLocation')
+    }
   } catch {
-    // Leave coordinates unset; validation will flag the missing location.
+    validationMessage.value = t('form.missingLocation')
   }
 }
 

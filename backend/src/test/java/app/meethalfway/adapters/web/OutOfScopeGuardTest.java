@@ -1,11 +1,11 @@
 package app.meethalfway.adapters.web;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -90,7 +90,8 @@ class OutOfScopeGuardTest {
                 "/api/v1/meetings/{code}",
                 "/api/v1/meetings/{code}",
                 "/api/v1/meetings/{code}/recommendations",
-                "/api/v1/geocode/autocomplete");
+                "/api/v1/geocode/autocomplete",
+                "/api/v1/geocode/resolve");
     }
 
     @Test
