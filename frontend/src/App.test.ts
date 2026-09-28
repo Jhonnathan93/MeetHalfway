@@ -1,19 +1,40 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
 import fc from 'fast-check'
+import { createI18n } from 'vue-i18n'
 import App from './App.vue'
+import { messages, type Locale, type MessageSchema } from '@/i18n/messages'
+
+function makeI18n(locale: Locale = 'en') {
+  return createI18n<[MessageSchema], Locale>({
+    legacy: false,
+    locale,
+    fallbackLocale: 'en',
+    messages,
+  })
+}
+
+function mountApp(locale: Locale = 'en') {
+  return mount(App, { global: { plugins: [makeI18n(locale)] } })
+}
 
 describe('App shell', () => {
   it('renders the application title (Vue Test Utils smoke test)', () => {
-    const wrapper = mount(App)
+    const wrapper = mountApp()
     expect(wrapper.find('.app-title').text()).toBe('MeetHalfway')
   })
 
   it('renders the desktop-first layout regions', () => {
-    const wrapper = mount(App)
+    const wrapper = mountApp()
     expect(wrapper.find('.app-main').exists()).toBe(true)
     expect(wrapper.find('.app-content').exists()).toBe(true)
     expect(wrapper.find('.app-sidebar').exists()).toBe(true)
+  })
+
+  it('mounts the meeting form and language selector', () => {
+    const wrapper = mountApp()
+    expect(wrapper.find('.meeting-form').exists()).toBe(true)
+    expect(wrapper.find('.language-selector').exists()).toBe(true)
   })
 })
 

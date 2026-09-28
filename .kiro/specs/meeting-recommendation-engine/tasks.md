@@ -15,7 +15,7 @@ Conventions:
 
 ## Tasks
 
-- [ ] 1. Scaffold monorepo, Docker Compose, and backend/frontend skeletons
+- [x] 1. Scaffold monorepo, Docker Compose, and backend/frontend skeletons
   - [x] 1.1 Create monorepo structure and container/edge configuration
     - Create `meethalfway/` layout: `frontend/`, `backend/`, `nginx/`, `docs/`, `docs/decisions/`
     - Author `docker-compose.yml` with services for backend, frontend, PostgreSQL, and Nginx reverse proxy routing `/api/v1` to the backend
@@ -183,39 +183,39 @@ Conventions:
 - [x] 8. Checkpoint - engine core complete
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Implement persistence (PostgreSQL + MeetingRepository adapter)
-  - [ ] 9.1 Implement the PostgreSQL schema and JPA entities
+- [x] 9. Implement persistence (PostgreSQL + MeetingRepository adapter)
+  - [x] 9.1 Implement the PostgreSQL schema and JPA entities
     - Create schema/migrations for MEETING (with `url_code`, `transport_mode`, timestamps, no user identity), PARTICIPANT, and RECOMMENDATION (with `excludes_outlier`, `per_participant_times` jsonb)
     - Map JPA entities mirroring the domain, keeping the domain free of persistence annotations
     - _Requirements: 9.1, 9.2, 9.6_
 
-  - [ ] 9.2 Implement the JPA MeetingRepository adapter and url_code generation
+  - [x] 9.2 Implement the JPA MeetingRepository adapter and url_code generation
     - Implement `save`, `findByUrlCode`, `deleteByUrlCode`; generate a short, URL-safe, collision-checked `url_code` producing `/m/{code}` paths
     - _Requirements: 9.1, 9.2, 9.5_
 
-  - [ ] 9.3 Write property test for meeting persistence round-trip
+  - [x] 9.3 Write property test for meeting persistence round-trip
     - **Property 17: Meeting persistence round-trip** — save then retrieve by `url_code` yields an equivalent meeting (count, names, locations, mode, recommendations)
     - **Validates: Requirements 9.1, 9.3**
     - jqwik, min 100 iterations; tagged per convention
 
-  - [ ] 9.4 Write integration tests for persistence CRUD
+  - [x] 9.4 Write integration tests for persistence CRUD
     - Test edit persistence, delete removal, and history retention against a test PostgreSQL instance
     - _Requirements: 9.4, 9.5, 9.6_
 
-- [ ] 10. Implement provider adapters (routing, geocoding, places stub)
-  - [ ] 10.1 Implement RoutingAdapter behind the RoutingProvider port
+- [x] 10. Implement provider adapters (routing, geocoding, places stub)
+  - [x] 10.1 Implement RoutingAdapter behind the RoutingProvider port
     - Call the chosen free/open-source routing service (per ADR-001) for whole-minute travel time; map timeouts/rate-limits to typed routing failures with clear reasons; keep API keys backend-only
     - _Requirements: 2.1, 5.2, 6.1, 11.4_
 
-  - [ ] 10.2 Implement GeocodingAdapter behind the GeocodingProvider port
+  - [x] 10.2 Implement GeocodingAdapter behind the GeocodingProvider port
     - Implement `autocomplete` and `resolve`; proxy the provider from the backend so keys never reach the frontend
     - _Requirements: 9.7, 11.4_
 
-  - [ ] 10.3 Implement PlacesProvider MVP stub
+  - [x] 10.3 Implement PlacesProvider MVP stub
     - Provide a stubbed `PlacesProvider` implementation so post-MVP work is only writing an adapter
     - _Requirements: 12.3_
 
-  - [ ] 10.4 Write integration tests for geocoding autocomplete/resolve
+  - [x] 10.4 Write integration tests for geocoding autocomplete/resolve
     - Use a fake `GeocodingProvider` to test autocomplete and address resolution wiring
     - _Requirements: 9.7_
 
@@ -224,70 +224,71 @@ Conventions:
     - **Validates: Requirements 1.6, 1.7**
     - jqwik, min 100 iterations; tagged per convention
 
-- [ ] 11. Implement application use cases
-  - [ ] 11.1 Implement CreateMeeting, GetMeeting, EditMeeting, DeleteMeeting
+- [x] 11. Implement application use cases
+  - [x] 11.1 Implement CreateMeeting, GetMeeting, EditMeeting, DeleteMeeting
     - Validate input, generate `Meeting_URL`, persist; resolve by `url_code` without identity control; apply edits; delete
     - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
 
-  - [ ] 11.2 Implement ComputeRecommendations use case
+  - [x] 11.2 Implement ComputeRecommendations use case
     - Drive the engine and persist produced recommendations (including outlier trade-off variants)
     - _Requirements: 2.2, 3.1, 4.4, 6.1, 7.2, 8.1_
 
-  - [ ] 11.3 Write unit tests for use-case behaviors and out-of-scope guards
+  - [x] 11.3 Write unit tests for use-case behaviors and out-of-scope guards
     - Cover creator-decides outlier behavior (7.4), no venue booking (12.1), no invitations (12.2), no category filtering (12.3), no per-participant constraints (12.4)
     - _Requirements: 7.4, 12.1, 12.2, 12.3, 12.4_
 
-- [ ] 12. Implement the REST web adapter with cross-cutting concerns
-  - [ ] 12.1 Implement request validation and input sanitization
+- [x] 12. Implement the REST web adapter with cross-cutting concerns
+  - [x] 12.1 Implement request validation and input sanitization
     - Sanitize inputs first, then validate at the web adapter; map failures to HTTP 400 with machine-readable codes identifying the offending field/participant
     - _Requirements: 1.2, 1.3, 1.5, 1.6, 1.7, 1.8_
 
-  - [ ] 12.2 Implement the Meeting controller endpoints under /api/v1
+  - [x] 12.2 Implement the Meeting controller endpoints under /api/v1
     - `POST /api/v1/meetings`, `GET/PUT/DELETE /api/v1/meetings/{code}`, `POST /api/v1/meetings/{code}/recommendations` (200 results or 422 routing-error), `GET /api/v1/geocode/autocomplete?q=`
     - Return actionable 422 message asking the Creator to correct/remove the location on routing failure
     - _Requirements: 6.2, 8.1, 8.2, 8.3, 9.1, 9.2, 9.4, 9.5, 9.7, 11.1_
 
-  - [ ] 12.3 Implement rate limiting and explicit CORS at the web adapter
+  - [x] 12.3 Implement rate limiting and explicit CORS at the web adapter
     - Rate-limit filter keyed by client IP returning HTTP 429 when exceeded; re-assert CORS policy permitting only configured origins; ensure no provider keys appear in any response
     - _Requirements: 11.2, 11.3, 11.4_
 
-  - [ ] 12.4 Write integration tests for REST wiring, rate limiting, and CORS
+  - [x] 12.4 Write integration tests for REST wiring, rate limiting, and CORS
     - Test `/api/v1` routing, 429 on rate-limit breach, CORS rejection for disallowed origins, and the actionable 422 routing-error message
     - _Requirements: 6.2, 11.1, 11.2, 11.3_
 
-  - [ ] 12.5 Write config/structure tests for city-agnosticism and key safety
+  - [x] 12.5 Write config/structure tests for city-agnosticism and key safety
     - Assert city-specific values come from `EngineConfig`, the 15% tolerance is a fixed constant (not a config field), and no provider key appears in responses or the frontend bundle
     - _Requirements: 4.3, 5.4, 11.4, 11.5_
 
-- [ ] 13. Checkpoint - backend API complete
+- [x] 13. Checkpoint - backend API complete
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 14. Implement the frontend (Vue 3 + TS)
-  - [ ] 14.1 Implement AddressSearchBox with autocomplete
+  - [x] 14.1 Implement AddressSearchBox with autocomplete
     - Per-participant address entry backed by the geocoding autocomplete endpoint; no map-click selection
     - _Requirements: 9.7, 9.8_
 
-  - [ ] 14.2 Implement StrategyComparisonView
+  - [x] 14.2 Implement StrategyComparisonView
     - Render the three strategy points with per-participant travel time, Σ, max, σ, each as an exact coordinate
     - _Requirements: 8.1, 8.2, 8.3_
 
-  - [ ] 14.3 Implement OutlierTradeoffPanel
+  - [x] 14.3 Implement OutlierTradeoffPanel
     - Show include-vs-exclude comparison with group average travel times and let the Creator decide
     - _Requirements: 7.3, 7.4_
 
-  - [ ] 14.4 Implement i18n (ES/EN), LanguageSelector, and dark-mode ThemeProvider
+  - [x] 14.4 Implement i18n (ES/EN), LanguageSelector, and dark-mode ThemeProvider
     - ES/EN message catalogs, a language selector that switches interface language, and dark mode as the default and only MVP theme
     - _Requirements: 10.1, 10.3, 10.4, 10.5_
 
   - [ ] 14.5 Wire frontend to the backend API and meeting lifecycle
     - Connect create/view/edit/delete and recommendation requests to `/api/v1`; render routing-error prompts asking to correct/remove a location
     - _Requirements: 6.2, 9.1, 9.2, 9.3, 9.4, 9.5, 11.1_
+    - NOTE (partial): Typed `/api/v1` client and create→compute→view flow + routing-error (422) rendering are implemented and wired in `App.vue`. BLOCKED on address→coordinate resolution: the backend exposes `GET /geocode/autocomplete` (returns `{description, placeId}` with no coordinate) but NO resolve endpoint, and `AddressSuggestion` carries no lat/lng. `MeetingForm` therefore cannot populate real participant coordinates from a chosen suggestion without fabricating them. Needs a backend `GET /api/v1/geocode/resolve?placeId=` (or `?q=`) returning a `Coordinate` (the `GeocodingProvider.resolve` port already exists; wire a controller endpoint), then finish `MeetingForm.onSelect` to store the resolved lat/lng.
 
-  - [ ] 14.6 Write frontend property test for pure metric formatting
+  - [x] 14.6 Write frontend property test for pure metric formatting
     - fast-check (min 100 iterations) for pure formatting logic (e.g., minutes/metric rendering) integrated with Vitest
     - _Requirements: 8.2_
 
-  - [ ] 14.7 Write snapshot/DOM tests for UI, i18n, dark mode, and no-map-click
+  - [x] 14.7 Write snapshot/DOM tests for UI, i18n, dark mode, and no-map-click
     - Vitest + Vue Test Utils: dark-mode default, desktop-first layout, ES/EN switching, and absence of map-click selection
     - _Requirements: 9.8, 10.1, 10.2, 10.3, 10.4, 10.5_
 
