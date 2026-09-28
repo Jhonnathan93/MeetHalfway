@@ -1,6 +1,7 @@
 package app.meethalfway.domain.engine;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -167,17 +168,17 @@ public final class DefaultRecommendationEngine implements RecommendationEngine {
         // 2. Generate exactly N candidates from the participant origins.
         List<Coordinate> candidates = candidateGenerator.generate(origins, config);
 
-        // 3. Route every participant to every candidate; surface routing failures.
-        List<RoutingError> routingErrors = collectRoutingErrors(participants, candidates, routing, input.mode());
-        if (!routingErrors.isEmpty()) {
-            return new RecommendationOutcome.RoutingFailure(routingErrors);
+        // 3. Capture each candidate's raw per-participant travel times once. This
+        //    also detects routing failures, avoiding a separate preflight pass that
+        //    would duplicate every external routing request.
+        RoutingMatrix routingMatrix = routeMatrix(participants, candidates, routing, input.mode());
+        if (!routingMatrix.errors().isEmpty()) {
+            return new RecommendationOutcome.RoutingFailure(routingMatrix.errors());
         }
 
-        // 4. Capture each candidate's raw per-participant travel times once, so the
-        //    excluding variant can be re-evaluated from the same matrix (deterministic,
-        //    no extra routing).
-        List<Map<ParticipantId, Minutes>> travelTimeMatrix =
-                routeMatrix(participants, candidates, routing, input.mode());
+        // 4. The matrix lets the excluding variant be re-evaluated from the same
+        //    route results (deterministic, no extra routing).
+        List<Map<ParticipantId, Minutes>> travelTimeMatrix = routingMatrix.travelTimes();
 
         // 5. Evaluate metrics per candidate and run the three selectors, tie-broken by
         //    the config's ε and centroid, over the full (including-outlier) group.
@@ -217,57 +218,42 @@ public final class DefaultRecommendationEngine implements RecommendationEngine {
     }
 
     /**
-     * Routes every participant to every candidate and returns one
-     * {@link RoutingError} per participant whose location cannot be routed. A
-     * participant is short-circuited on their first failure (their location is
-     * unroutable regardless of the candidate) so each affected participant is
-     * reported exactly once (Requirement 6.1). Returns an empty list when every
-     * participant routes to every candidate.
-     */
-    private List<RoutingError> collectRoutingErrors(
-            List<ParticipantInput> participants,
-            List<Coordinate> candidates,
-            RoutingProvider routing,
-            TransportMode mode) {
-        List<RoutingError> errors = new ArrayList<>();
-        for (ParticipantInput participant : participants) {
-            Coordinate origin = participant.location();
-            for (Coordinate candidate : candidates) {
-                RouteResult result = routing.travelTime(origin, candidate, mode);
-                if (result instanceof RouteResult.Failure failure) {
-                    errors.add(new RoutingError(participant.id(), origin, failure.reason()));
-                    break; // this participant's location is unroutable; report once.
-                }
-            }
-        }
-        return errors;
-    }
-
-    /**
      * Routes every participant to every candidate and returns, per candidate (in
-     * candidate order), the map of participant id to travel time. Only called
-     * after {@link #collectRoutingErrors} has confirmed every route succeeds, so
-     * every {@link RouteResult} here is a {@link RouteResult.Success}. Capturing
-     * the full matrix once lets the excluding variant be recomputed from it with
-     * no extra routing, keeping the computation deterministic.
+     * candidate order), the map of participant id to travel time and any routing
+     * errors. A participant is short-circuited on its first failure, so each
+     * affected location is reported exactly once.
      */
-    private List<Map<ParticipantId, Minutes>> routeMatrix(
+    private RoutingMatrix routeMatrix(
             List<ParticipantInput> participants,
             List<Coordinate> candidates,
             RoutingProvider routing,
             TransportMode mode) {
         List<Map<ParticipantId, Minutes>> matrix = new ArrayList<>(candidates.size());
+        List<RoutingError> errors = new ArrayList<>();
+        Set<ParticipantId> failedParticipants = new HashSet<>();
         for (Coordinate candidate : candidates) {
             Map<ParticipantId, Minutes> perParticipant = new LinkedHashMap<>();
             for (ParticipantInput participant : participants) {
+                if (failedParticipants.contains(participant.id())) {
+                    continue;
+                }
                 RouteResult result = routing.travelTime(participant.location(), candidate, mode);
-                RouteResult.Success success = (RouteResult.Success) result;
-                perParticipant.put(participant.id(), success.travelTime());
+                if (result instanceof RouteResult.Success success) {
+                    perParticipant.put(participant.id(), success.travelTime());
+                } else {
+                    RouteResult.Failure failure = (RouteResult.Failure) result;
+                    errors.add(new RoutingError(
+                            participant.id(), participant.location(), failure.reason()));
+                    failedParticipants.add(participant.id());
+                }
             }
             matrix.add(perParticipant);
         }
-        return matrix;
+        return new RoutingMatrix(matrix, errors);
     }
+
+    private record RoutingMatrix(
+            List<Map<ParticipantId, Minutes>> travelTimes, List<RoutingError> errors) {}
 
     /**
      * Builds an {@link EvaluatedCandidate} for every candidate from its captured
