@@ -85,6 +85,7 @@ function choose(suggestion: AddressSuggestion): void {
   emit('update:modelValue', suggestion.description)
   emit('select', suggestion)
   suggestions.value = []
+  hasQueried.value = false
 }
 
 // Keep the input in sync when the parent resets the value.

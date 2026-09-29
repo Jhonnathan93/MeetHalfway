@@ -28,6 +28,8 @@ describe('MeetingForm', () => {
     await flushPromises()
     await wrapper.find('form').trigger('submit')
 
+    expect(geocoding.resolveAddress).toHaveBeenCalledWith('place-1')
+
     const emitted = wrapper.emitted('submit')
     expect(emitted).toBeTruthy()
     const request = emitted?.[0]?.[0] as MeetingRequest

@@ -19,6 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
+import java.util.regex.Pattern;
 
 /**
  * {@link GeocodingProvider} adapter backed by an OpenStreetMap
@@ -38,12 +40,15 @@ import java.util.List;
  * <p>The JDK {@link HttpClient} performs the provider request directly; no
  * generic transport wrapper is needed at this external-system boundary.
  *
- * <p>Both operations call the provider {@code /search} endpoint returning JSON:
- * an array of objects carrying {@code display_name}, {@code place_id},
- * {@code lat}, and {@code lon}. {@code autocomplete} maps each entry to an
- * {@link AddressSuggestion}; {@code resolve} takes the first entry's coordinate.
+ * <p>Autocomplete uses Nominatim's {@code /search} endpoint and returns an OSM
+ * reference with each label. Resolving a selected suggestion uses
+ * {@code /lookup} with that reference, avoiding a second fuzzy search on the
+ * potentially long display label. Free-form resolve queries still use
+ * {@code /search}.
  */
 public final class GeocodingAdapter implements GeocodingProvider {
+
+    private static final Pattern OSM_REFERENCE = Pattern.compile("[NWR]\\d+");
 
     private final HttpClient http;
     private final ObjectMapper objectMapper;
@@ -87,7 +92,7 @@ public final class GeocodingAdapter implements GeocodingProvider {
             throw new IllegalArgumentException("config must not be null");
         }
 
-        StringBuilder url = new StringBuilder(searchBase());
+        StringBuilder url = new StringBuilder(endpoint("search"));
         url.append("&q=").append(encode(query.trim()));
         url.append("&limit=").append(resultLimit());
         appendBounds(url, config.serviceBounds());
@@ -100,7 +105,7 @@ public final class GeocodingAdapter implements GeocodingProvider {
         List<AddressSuggestion> suggestions = new ArrayList<>();
         for (JsonNode entry : root) {
             String description = text(entry, "display_name");
-            String placeId = text(entry, "place_id");
+            String placeId = osmReference(entry);
             if (description == null || description.isBlank() || placeId == null || placeId.isBlank()) {
                 continue; // skip malformed entries rather than fail the whole query
             }
@@ -115,7 +120,10 @@ public final class GeocodingAdapter implements GeocodingProvider {
             return GeocodeResult.notFound("Address is empty; enter an address to resolve.");
         }
 
-        String url = searchBase() + "&limit=1&q=" + encode(address.trim());
+        String value = address.trim();
+        String url = OSM_REFERENCE.matcher(value).matches()
+                ? endpoint("lookup") + "&osm_ids=" + encode(value)
+                : endpoint("search") + "&limit=1&q=" + encode(value);
 
         JsonNode root;
         try {
@@ -148,17 +156,52 @@ public final class GeocodingAdapter implements GeocodingProvider {
 
     // --- helpers -----------------------------------------------------------
 
-    private String searchBase() {
+    private String endpoint(String operation) {
         String base = properties.baseUrl().trim();
-        StringBuilder url = new StringBuilder(base);
-        url.append(base.contains("?") ? "&" : "?");
-        url.append("format=json");
+        int queryStart = base.indexOf('?');
+        String existingQuery = queryStart < 0 ? "" : base.substring(queryStart + 1);
+        String path = queryStart < 0 ? base : base.substring(0, queryStart);
+        path = path.replaceAll("/+$", "");
+
+        // Accept either the Nominatim server root or an explicitly configured
+        // /search or /lookup URL. The operation path is always explicit.
+        if (path.endsWith("/search") || path.endsWith("/lookup")) {
+            path = path.substring(0, path.lastIndexOf('/'));
+        }
+
+        StringBuilder url = new StringBuilder(path).append('/').append(operation).append('?');
+        if (!existingQuery.isBlank()) {
+            url.append(existingQuery).append('&');
+        }
+        if (!existingQuery.contains("format=")) {
+            url.append("format=json");
+        } else if (url.charAt(url.length() - 1) == '&') {
+            url.setLength(url.length() - 1);
+        }
         String key = properties.apiKey();
         if (key != null && !key.isBlank()) {
             // Backend-only; never exposed to the frontend or logs.
-            url.append("&key=").append(encode(key));
+            if (url.charAt(url.length() - 1) != '?') {
+                url.append('&');
+            }
+            url.append("key=").append(encode(key));
         }
         return url.toString();
+    }
+
+    private static String osmReference(JsonNode entry) {
+        String type = text(entry, "osm_type");
+        String id = text(entry, "osm_id");
+        if (id == null || !id.matches("\\d+")) {
+            return null;
+        }
+        String prefix = switch (type == null ? "" : type.toLowerCase(Locale.ROOT)) {
+            case "node" -> "N";
+            case "way" -> "W";
+            case "relation" -> "R";
+            default -> null;
+        };
+        return prefix == null ? null : prefix + id;
     }
 
     /**

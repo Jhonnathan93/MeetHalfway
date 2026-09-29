@@ -65,7 +65,7 @@ async function onSelect(index: number, suggestion: AddressSuggestion): Promise<v
   draft.lat = null
   draft.lng = null
   try {
-    const coordinate = await resolveAddress(suggestion.description)
+    const coordinate = await resolveAddress(suggestion.placeId)
     if (coordinate !== null) {
       draft.lat = coordinate.lat
       draft.lng = coordinate.lng

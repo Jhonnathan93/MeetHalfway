@@ -23,6 +23,26 @@ describe('AddressSearchBox', () => {
     expect(wrapper.find('.map, [data-map], canvas').exists()).toBe(false)
   })
 
+  it('does not show the no-results message after choosing a suggestion', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(geocoding, 'autocompleteAddress').mockResolvedValue([
+      { description: 'Universidad EAFIT, Medellín', placeId: 'W123' },
+    ])
+    const wrapper = mount(AddressSearchBox, {
+      global: { plugins: [makeI18n()] }, props: { modelValue: '' },
+    })
+
+    await wrapper.find('input').setValue('Universidad EAFIT')
+    await vi.advanceTimersByTimeAsync(300)
+    await flushPromises()
+    await wrapper.find('button.address-search__option').trigger('click')
+
+    expect(wrapper.find('.address-search__status').exists()).toBe(false)
+    expect(wrapper.emitted('select')?.[0]?.[0]).toEqual({
+      description: 'Universidad EAFIT, Medellín', placeId: 'W123',
+    })
+  })
+
   it('aborts and ignores an older response when the query changes', async () => {
     vi.useFakeTimers()
     const pending: Array<(suggestions: { description: string; placeId: string }[]) => void> = []

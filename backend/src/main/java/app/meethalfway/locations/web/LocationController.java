@@ -80,14 +80,14 @@ public class LocationController {
     }
 
     /**
-     * Resolves a chosen address (or suggestion label) to a precise coordinate
+     * Resolves a chosen address or provider place reference to a precise coordinate
      * (Requirement 9.7). Returns 200 with the coordinate when resolved, or 422
      * with an actionable reason when the address could not be resolved so the
      * Creator can correct it &mdash; never a silently wrong location. Provider
      * keys are never exposed. The backend performs the resolution so no provider
      * credential reaches the browser (Requirement 11.4).
      *
-     * @param query the address text or suggestion label to resolve (query
+     * @param query the free-form address or opaque provider reference (query
      *              parameter {@code q})
      * @return 200 with the resolved coordinate, or 422 with the reason it failed
      */
