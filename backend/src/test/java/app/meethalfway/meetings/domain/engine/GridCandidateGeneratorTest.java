@@ -52,6 +52,34 @@ class GridCandidateGeneratorTest {
     }
 
     @Test
+    void candidateGridIsBalancedAroundTheSearchRegionCentre() {
+        for (int count : List.of(8, 25)) {
+            EngineConfig config = config(count);
+            SearchRegion region = generator.searchRegion(origins(), config);
+            List<Coordinate> candidates = generator.generate(origins(), config);
+            double centerLat = (region.minLat() + region.maxLat()) / 2.0;
+            double centerLng = (region.minLng() + region.maxLng()) / 2.0;
+
+            assertThat(candidates).hasSize(count);
+            if ((count & 1) == 1) {
+                assertThat(candidates).contains(new Coordinate(centerLat, centerLng));
+            }
+            for (Coordinate candidate : candidates) {
+                if (Math.abs(candidate.lat() - centerLat) < 1.0e-12
+                        && Math.abs(candidate.lng() - centerLng) < 1.0e-12) {
+                    continue;
+                }
+                double mirrorLat = 2.0 * centerLat - candidate.lat();
+                double mirrorLng = 2.0 * centerLng - candidate.lng();
+                assertThat(candidates).anySatisfy(mirror -> {
+                    assertThat(Math.abs(mirror.lat() - mirrorLat)).isLessThan(1.0e-12);
+                    assertThat(Math.abs(mirror.lng() - mirrorLng)).isLessThan(1.0e-12);
+                });
+            }
+        }
+    }
+
+    @Test
     void searchRegionStaysWithinServiceBounds() {
         SearchRegion region = generator.searchRegion(origins(), config(10));
         assertThat(region.minLat()).isGreaterThanOrEqualTo(bounds().minLat());

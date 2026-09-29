@@ -1,6 +1,7 @@
 package app.meethalfway.meetings.domain.engine;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import app.meethalfway.shared.domain.Coordinate;
@@ -24,14 +25,13 @@ import app.meethalfway.meetings.domain.model.ServiceBounds;
  * {@link EngineConfig} and the origins, nothing is hard-coded to a city.
  *
  * <p><b>Point placement</b> ({@link #generate}). Exactly {@code gridDensityN}
- * points are produced. Let {@code cols = ceil(sqrt(N))} and
- * {@code rows = ceil(N / cols)}; the region is sampled on a {@code rows × cols}
- * lattice with points spread evenly across each axis inclusive of both edges,
- * emitted in row-major order (increasing latitude, then increasing longitude),
- * and the first {@code N} are kept. When {@code N == 1} the single point is the
- * region centre. When an axis is degenerate (min == max) every sample on that
- * axis collapses to the shared bound. All produced points therefore lie within
- * the region returned by {@link #searchRegion}, satisfying Property 11.
+ * points are produced on a square lattice spread evenly across the search
+ * region. Points are selected in mirrored pairs around the region centre, with
+ * the centre included for odd values of N, so a partial grid cannot bias the
+ * search toward one corner. When {@code N == 1} the single point is the region
+ * centre. When an axis is degenerate (min == max) samples collapse to the shared
+ * bound. All produced points therefore lie within the region returned by
+ * {@link #searchRegion}, satisfying Property 11.
  *
  * <p><b>Determinism.</b> No randomness, clock, or identity-dependent ordering is
  * used; identical {@code origins} and {@code config} always yield the identical
@@ -53,26 +53,65 @@ public final class GridCandidateGenerator {
             return List.copyOf(candidates);
         }
 
-        int cols = (int) Math.ceil(Math.sqrt((double) n));
-        int rows = (int) Math.ceil((double) n / (double) cols);
+        int side = (int) Math.ceil(Math.sqrt((double) n));
+        if ((n & 1) == 1 && (side & 1) == 0) {
+            side++;
+        }
 
-        for (int r = 0; r < rows && candidates.size() < n; r++) {
-            double lat = axisSample(region.minLat(), region.maxLat(), r, rows);
-            for (int c = 0; c < cols && candidates.size() < n; c++) {
-                double lng = axisSample(region.minLng(), region.maxLng(), c, cols);
-                // Clamp each sample to the region's own bounds. axisSample computes
-                // min + (max - min) * fraction, which at the far edge (fraction == 1)
-                // can drift ~1 ULP above max, escaping region.contains. Clamping to
-                // the exact region box guarantees every emitted point is contained.
-                candidates.add(
-                        new Coordinate(
-                                clamp(lat, region.minLat(), region.maxLat()),
-                                clamp(lng, region.minLng(), region.maxLng())));
+        int centerIndex = side / 2;
+        Coordinate center = midpoint(region);
+        if ((n & 1) == 1) {
+            candidates.add(center);
+        }
+
+        List<GridPair> pairs = new ArrayList<>(Math.min(n / 2, 1024));
+        for (int row = 0; row < side; row++) {
+            for (int col = 0; col < side; col++) {
+                int oppositeRow = side - 1 - row;
+                int oppositeCol = side - 1 - col;
+                long index = (long) row * side + col;
+                long oppositeIndex = (long) oppositeRow * side + oppositeCol;
+                if (index >= oppositeIndex || (row == centerIndex && col == centerIndex)) {
+                    continue;
+                }
+
+                int rowDistance = row - centerIndex;
+                int colDistance = col - centerIndex;
+                double radiusSquared = (double) rowDistance * rowDistance
+                        + (double) colDistance * colDistance;
+                Coordinate point = sample(region, row, col, side);
+                Coordinate opposite = new Coordinate(
+                        clamp(2.0 * center.lat() - point.lat(), region.minLat(), region.maxLat()),
+                        clamp(2.0 * center.lng() - point.lng(), region.minLng(), region.maxLng()));
+                pairs.add(new GridPair(point, opposite, radiusSquared, row, col));
             }
+        }
+
+        pairs.sort(Comparator.comparingDouble(GridPair::radiusSquared)
+                .thenComparingInt(GridPair::row)
+                .thenComparingInt(GridPair::col));
+        int requiredPairs = n / 2;
+        for (int i = 0; i < requiredPairs; i++) {
+            GridPair pair = pairs.get(i);
+            candidates.add(pair.first());
+            candidates.add(pair.opposite());
         }
 
         return List.copyOf(candidates);
     }
+
+    private static Coordinate sample(SearchRegion region, int row, int col, int side) {
+        double lat = axisSample(region.minLat(), region.maxLat(), row, side);
+        double lng = axisSample(region.minLng(), region.maxLng(), col, side);
+        // Clamp samples to the exact region box in case floating-point arithmetic
+        // drifts one ULP beyond an inclusive edge.
+        return new Coordinate(
+                clamp(lat, region.minLat(), region.maxLat()),
+                clamp(lng, region.minLng(), region.maxLng()));
+    }
+
+    private record GridPair(
+            Coordinate first, Coordinate opposite, double radiusSquared, int row, int col) {}
 
     public SearchRegion searchRegion(List<Coordinate> origins, EngineConfig config) {
         validate(origins, config);

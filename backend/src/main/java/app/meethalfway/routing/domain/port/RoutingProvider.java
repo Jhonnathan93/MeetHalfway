@@ -1,5 +1,8 @@
 package app.meethalfway.routing.domain.port;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import app.meethalfway.shared.domain.Coordinate;
 import app.meethalfway.shared.domain.TransportMode;
 
@@ -30,4 +33,33 @@ public interface RoutingProvider {
      *         could not be computed
      */
     RouteResult travelTime(Coordinate origin, Coordinate destination, TransportMode mode);
+
+    /**
+     * Computes a travel-time matrix with one row per origin and one column per
+     * destination. Providers with a native matrix API can override this method
+     * to avoid one network request per pair; the default keeps simple providers
+     * and test fakes source-compatible.
+     */
+    default List<List<RouteResult>> travelTimes(
+            List<Coordinate> origins, List<Coordinate> destinations, TransportMode mode) {
+        if (origins == null || destinations == null || mode == null) {
+            throw new IllegalArgumentException("origins, destinations and mode must not be null");
+        }
+
+        List<List<RouteResult>> matrix = new ArrayList<>(origins.size());
+        for (Coordinate origin : origins) {
+            if (origin == null) {
+                throw new IllegalArgumentException("origins must not contain null coordinates");
+            }
+            List<RouteResult> row = new ArrayList<>(destinations.size());
+            for (Coordinate destination : destinations) {
+                if (destination == null) {
+                    throw new IllegalArgumentException("destinations must not contain null coordinates");
+                }
+                row.add(travelTime(origin, destination, mode));
+            }
+            matrix.add(List.copyOf(row));
+        }
+        return List.copyOf(matrix);
+    }
 }

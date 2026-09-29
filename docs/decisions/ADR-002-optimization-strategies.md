@@ -38,8 +38,9 @@ Outliers are detected from the Fastest result using a configurable multiple of
 the median participant travel time (default `k = 2`). A participant is flagged
 only when their time is strictly greater than `k × median`. When any are found,
 the application presents all-participant recommendations alongside a second
-calculation excluding those outliers; it never silently removes them from the
-primary result.
+calculation that generates a fresh candidate grid from only the remaining
+participants, then re-routes and selects all three strategies on that grid. The
+outlier never silently disappears from the primary result.
 
 ## Consequences
 
@@ -47,5 +48,7 @@ primary result.
   no generic selector plug-in framework is needed.
 - Jqwik properties protect optimality, feasibility, deterministic tie-breaking,
   and outlier transparency.
+- Balanced candidate grids and batched OSRM Table requests improve search
+  coverage without multiplying one-request-per-pair network calls.
 - The strategy response fields remain part of the current API contract even
   where their information is derivable by clients.

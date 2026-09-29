@@ -33,9 +33,10 @@ meethalfway:
     service-bounds-max-lat: ${MEETHALFWAY_BOUNDS_MAX_LAT:90.0}
     service-bounds-min-lng: ${MEETHALFWAY_BOUNDS_MIN_LNG:-180.0}
     service-bounds-max-lng: ${MEETHALFWAY_BOUNDS_MAX_LNG:180.0}
-    # Keep the default responsive with a public routing provider. Production can
-    # raise this through MEETHALFWAY_GRID_N after using a batched/self-hosted router.
-    grid-density-n: ${MEETHALFWAY_GRID_N:8}
+    # A balanced 5x5 candidate grid gives the selectors a finer search. OSRM's
+    # Table API batches the full participant-to-candidate matrix in one request.
+    # Override with MEETHALFWAY_GRID_N; large grids are split into bounded batches.
+    grid-density-n: ${MEETHALFWAY_GRID_N:25}
     max-search-radius-meters: ${MEETHALFWAY_MAX_RADIUS_M:20000.0}
     # Equality threshold epsilon ~= 0.5 minute (config-driven).
     epsilon-minutes: ${MEETHALFWAY_EPSILON_MIN:0.5}

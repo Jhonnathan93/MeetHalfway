@@ -1,7 +1,6 @@
 package app.meethalfway.meetings.domain.engine;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -65,10 +64,8 @@ import app.meethalfway.routing.domain.port.RoutingProvider;
  * {@link RecommendationOutcome.Success#of(StrategyResults)} with an empty
  * trade-off. When it contains <b>at least one</b> outlier, the engine:
  * <ol>
- *   <li>re-evaluates the <em>same</em> candidate set with the outlier
- *       participant id(s) removed from each candidate's per-participant map
- *       (metrics recomputed via {@link MetricCalculator}; the candidate set is
- *       unchanged, so the computation stays deterministic), and re-runs all three
+ *   <li>builds a new search region and candidate set using only the remaining
+ *       participant origins, obtains a new routing matrix, and re-runs all three
  *       selectors to produce the <em>excluding</em> {@link StrategyResults};</li>
  *   <li>computes the two group-average travel times as the mean of the
  *       respective {@code Fastest} winner's per-participant vector —
@@ -162,8 +159,7 @@ public final class RecommendationEngine {
             return new RecommendationOutcome.RoutingFailure(routingMatrix.errors());
         }
 
-        // 4. The matrix lets the excluding variant be re-evaluated from the same
-        //    route results (deterministic, no extra routing).
+        // 4. Keep the full group's route matrix for its three strategy results.
         List<Map<ParticipantId, Minutes>> travelTimeMatrix = routingMatrix.travelTimes();
 
         // 5. Evaluate metrics per candidate and run the three selectors, tie-broken by
@@ -192,8 +188,27 @@ public final class RecommendationEngine {
             return RecommendationOutcome.Success.of(including);
         }
 
-        StrategyResults excluding =
-                selectExcluding(candidates, travelTimeMatrix, outliers, participants, tieBreaker);
+        List<ParticipantInput> keptParticipants = participants.stream()
+                .filter(participant -> !outliers.contains(participant.id()))
+                .toList();
+        List<Coordinate> keptOrigins = keptParticipants.stream()
+                .map(ParticipantInput::location)
+                .toList();
+
+        // The reduced group gets a fresh search region, candidate grid, routing
+        // matrix, centroid and strategy selection. Reusing the full group's grid
+        // can preserve the outlier's influence on the answer even after removing
+        // their travel times.
+        List<Coordinate> excludingCandidates = candidateGenerator.generate(keptOrigins, config);
+        RoutingMatrix excludingRoutingMatrix = routeMatrix(
+                keptParticipants, excludingCandidates, routing, input.mode());
+        if (!excludingRoutingMatrix.errors().isEmpty()) {
+            return new RecommendationOutcome.RoutingFailure(excludingRoutingMatrix.errors());
+        }
+        List<StrategyResult> excludingEvaluated = evaluateAll(
+                excludingCandidates, excludingRoutingMatrix.travelTimes());
+        Coordinate excludingCentroid = GeographicCentroid.of(keptOrigins);
+        StrategyResults excluding = selectAll(excludingEvaluated, excludingCentroid, tieBreaker);
 
         double avgIncluding = metricCalculator.meanTime(fastestIncluding.perParticipant());
         double avgExcluding = metricCalculator.meanTime(excluding.fastest().perParticipant());
@@ -214,26 +229,40 @@ public final class RecommendationEngine {
             List<Coordinate> candidates,
             RoutingProvider routing,
             TransportMode mode) {
+        List<Coordinate> origins = participants.stream()
+                .map(ParticipantInput::location)
+                .toList();
+        List<List<RouteResult>> routed = routing.travelTimes(origins, candidates, mode);
+        if (routed.size() != participants.size()) {
+            throw new IllegalStateException("routing provider returned an invalid origin count");
+        }
+
         List<Map<ParticipantId, Minutes>> matrix = new ArrayList<>(candidates.size());
+        for (int i = 0; i < candidates.size(); i++) {
+            matrix.add(new LinkedHashMap<>());
+        }
         List<RoutingError> errors = new ArrayList<>();
-        Set<ParticipantId> failedParticipants = new HashSet<>();
-        for (Coordinate candidate : candidates) {
-            Map<ParticipantId, Minutes> perParticipant = new LinkedHashMap<>();
-            for (ParticipantInput participant : participants) {
-                if (failedParticipants.contains(participant.id())) {
-                    continue;
+        for (int participantIndex = 0; participantIndex < participants.size(); participantIndex++) {
+            ParticipantInput participant = participants.get(participantIndex);
+            List<RouteResult> row = routed.get(participantIndex);
+            if (row == null || row.size() != candidates.size()) {
+                throw new IllegalStateException("routing provider returned an invalid destination count");
+            }
+
+            for (int candidateIndex = 0; candidateIndex < candidates.size(); candidateIndex++) {
+                RouteResult result = row.get(candidateIndex);
+                if (result == null) {
+                    throw new IllegalStateException("routing provider returned a null route result");
                 }
-                RouteResult result = routing.travelTime(participant.location(), candidate, mode);
                 if (result instanceof RouteResult.Success success) {
-                    perParticipant.put(participant.id(), success.travelTime());
+                    matrix.get(candidateIndex).put(participant.id(), success.travelTime());
                 } else {
                     RouteResult.Failure failure = (RouteResult.Failure) result;
                     errors.add(new RoutingError(
                             participant.id(), participant.location(), failure.reason()));
-                    failedParticipants.add(participant.id());
+                    break;
                 }
             }
-            matrix.add(perParticipant);
         }
         return new RoutingMatrix(matrix, errors);
     }
@@ -252,43 +281,6 @@ public final class RecommendationEngine {
             evaluated.add(metricCalculator.evaluate(candidates.get(i), travelTimeMatrix.get(i)));
         }
         return evaluated;
-    }
-
-    /**
-     * Recomputes the three strategy results over the <em>same</em> candidate set
-     * with the outlier participant id(s) removed from each candidate's
-     * per-participant map, then re-run the selectors. The centroid is recomputed
-     * over the non-outlier origins so the final tie-break stays consistent with
-     * the reduced group.
-     */
-    private StrategyResults selectExcluding(
-            List<Coordinate> candidates,
-            List<Map<ParticipantId, Minutes>> travelTimeMatrix,
-            Set<ParticipantId> outliers,
-            List<ParticipantInput> participants,
-            TieBreaker tieBreaker) {
-        List<StrategyResult> reduced = new ArrayList<>(candidates.size());
-        for (int i = 0; i < candidates.size(); i++) {
-            Map<ParticipantId, Minutes> full = travelTimeMatrix.get(i);
-            Map<ParticipantId, Minutes> kept = new LinkedHashMap<>();
-            for (Map.Entry<ParticipantId, Minutes> entry : full.entrySet()) {
-                if (!outliers.contains(entry.getKey())) {
-                    kept.put(entry.getKey(), entry.getValue());
-                }
-            }
-            reduced.add(metricCalculator.evaluate(candidates.get(i), kept));
-        }
-
-        // Centroid over the non-outlier origins keeps the final tie-break consistent
-        // with the reduced group the excluding variant represents.
-        List<Coordinate> keptOrigins = new ArrayList<>();
-        for (ParticipantInput participant : participants) {
-            if (!outliers.contains(participant.id())) {
-                keptOrigins.add(participant.location());
-            }
-        }
-        Coordinate centroid = GeographicCentroid.of(keptOrigins);
-        return selectAll(reduced, centroid, tieBreaker);
     }
 
     /**

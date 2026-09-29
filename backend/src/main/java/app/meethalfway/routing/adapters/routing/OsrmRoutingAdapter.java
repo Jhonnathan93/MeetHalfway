@@ -6,7 +6,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.net.http.HttpTimeoutException;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+import java.util.StringJoiner;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +47,7 @@ public class OsrmRoutingAdapter implements RoutingProvider {
 
     private static final int SECONDS_PER_MINUTE = 60;
     private static final int HTTP_TOO_MANY_REQUESTS = 429;
+    private static final int DEFAULT_OSRM_TABLE_LOCATION_LIMIT = 100;
 
     private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
@@ -133,6 +137,176 @@ public class OsrmRoutingAdapter implements RoutingProvider {
         }
 
         return interpret(response);
+    }
+
+    @Override
+    public List<List<RouteResult>> travelTimes(
+            List<Coordinate> origins, List<Coordinate> destinations, TransportMode mode) {
+        if (origins == null || destinations == null || mode == null) {
+            throw new IllegalArgumentException("origins, destinations and mode must not be null");
+        }
+        if (origins.stream().anyMatch(java.util.Objects::isNull)
+                || destinations.stream().anyMatch(java.util.Objects::isNull)) {
+            throw new IllegalArgumentException("origins and destinations must not contain null coordinates");
+        }
+
+        List<List<RouteResult>> matrix = new ArrayList<>(origins.size());
+        for (int i = 0; i < origins.size(); i++) {
+            matrix.add(new ArrayList<>(destinations.size()));
+        }
+        if (origins.isEmpty() || destinations.isEmpty()) {
+            return immutableMatrix(matrix);
+        }
+
+        // OSRM's standard server limit counts coordinates in a table request.
+        // Split only the destination axis so each request reuses the same origins.
+        int destinationBatchSize = DEFAULT_OSRM_TABLE_LOCATION_LIMIT - origins.size();
+        if (destinationBatchSize < 1) {
+            return failureMatrix(origins.size(), destinations.size(),
+                    "Routing request exceeds the OSRM table coordinate limit.");
+        }
+
+        for (int start = 0; start < destinations.size(); start += destinationBatchSize) {
+            int end = Math.min(start + destinationBatchSize, destinations.size());
+            List<List<RouteResult>> batch = requestTable(
+                    origins, destinations.subList(start, end), mode);
+            for (int originIndex = 0; originIndex < origins.size(); originIndex++) {
+                matrix.get(originIndex).addAll(batch.get(originIndex));
+            }
+        }
+        return immutableMatrix(matrix);
+    }
+
+    private List<List<RouteResult>> requestTable(
+            List<Coordinate> origins, List<Coordinate> destinations, TransportMode mode) {
+        final URI uri;
+        try {
+            uri = URI.create(buildTableRequestUrl(origins, destinations, mode));
+        } catch (RuntimeException e) {
+            throw new IllegalStateException("failed to build routing table request URL", e);
+        }
+
+        HttpRequest.Builder requestBuilder = HttpRequest.newBuilder()
+                .uri(uri)
+                .timeout(timeout)
+                .header("Accept", "application/json")
+                .GET();
+        if (apiKey != null && !apiKey.isBlank()) {
+            requestBuilder.header("Authorization", "Bearer " + apiKey);
+        }
+
+        final HttpResponse<String> response;
+        try {
+            response = httpClient.send(requestBuilder.build(), HttpResponse.BodyHandlers.ofString());
+        } catch (HttpTimeoutException e) {
+            return failureMatrix(origins.size(), destinations.size(),
+                    "Routing request timed out after " + timeout.toMillis() + " ms.");
+        } catch (java.io.IOException e) {
+            return failureMatrix(origins.size(), destinations.size(),
+                    "Could not reach the routing service: " + e.getMessage());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("routing request was interrupted", e);
+        }
+        return interpretTable(response, origins.size(), destinations.size());
+    }
+
+    private List<List<RouteResult>> interpretTable(
+            HttpResponse<String> response, int originCount, int destinationCount) {
+        int status = response.statusCode();
+        if (status == HTTP_TOO_MANY_REQUESTS) {
+            return failureMatrix(originCount, destinationCount,
+                    "Routing service rate limit exceeded (HTTP 429). Please retry shortly.");
+        }
+        if (status < 200 || status >= 300) {
+            return failureMatrix(originCount, destinationCount,
+                    "Routing service returned an unexpected status (HTTP " + status + ").");
+        }
+
+        final JsonNode root;
+        try {
+            root = objectMapper.readTree(response.body());
+        } catch (Exception e) {
+            return failureMatrix(originCount, destinationCount,
+                    "Routing service returned an unreadable response.");
+        }
+
+        String code = root.path("code").asText("");
+        if (!"Ok".equals(code)) {
+            String message = root.path("message").asText("");
+            String detail = message.isBlank() ? code : code + " - " + message;
+            return failureMatrix(originCount, destinationCount,
+                    "Routing service could not calculate travel times (" + detail + ").");
+        }
+
+        JsonNode durations = root.path("durations");
+        if (!durations.isArray() || durations.size() != originCount) {
+            return failureMatrix(originCount, destinationCount,
+                    "Routing service returned an invalid travel-time matrix.");
+        }
+
+        List<List<RouteResult>> matrix = new ArrayList<>(originCount);
+        for (JsonNode row : durations) {
+            if (!row.isArray() || row.size() != destinationCount) {
+                return failureMatrix(originCount, destinationCount,
+                        "Routing service returned an invalid travel-time matrix.");
+            }
+            List<RouteResult> resultRow = new ArrayList<>(destinationCount);
+            for (JsonNode secondsNode : row) {
+                if (!secondsNode.isNumber()) {
+                    resultRow.add(RouteResult.failure(
+                            "No route could be computed for this location."));
+                    continue;
+                }
+                double seconds = secondsNode.asDouble();
+                if (!Double.isFinite(seconds) || seconds < 0.0) {
+                    resultRow.add(RouteResult.failure(
+                            "Routing service returned an invalid travel duration."));
+                    continue;
+                }
+                int minutes = (int) Math.round(seconds / SECONDS_PER_MINUTE);
+                resultRow.add(RouteResult.success(new Minutes(minutes)));
+            }
+            matrix.add(List.copyOf(resultRow));
+        }
+        return List.copyOf(matrix);
+    }
+
+    private String buildTableRequestUrl(
+            List<Coordinate> origins, List<Coordinate> destinations, TransportMode mode) {
+        StringJoiner coordinates = new StringJoiner(";");
+        origins.forEach(coordinate -> coordinates.add(format(coordinate.lng()) + "," + format(coordinate.lat())));
+        destinations.forEach(coordinate -> coordinates.add(format(coordinate.lng()) + "," + format(coordinate.lat())));
+
+        return baseUrl
+                + "/table/v1/" + profileFor(mode) + "/" + coordinates
+                + "?annotations=duration&sources=" + indexRange(0, origins.size())
+                + "&destinations=" + indexRange(origins.size(), origins.size() + destinations.size());
+    }
+
+    private static String indexRange(int startInclusive, int endExclusive) {
+        StringJoiner indices = new StringJoiner(";");
+        for (int i = startInclusive; i < endExclusive; i++) {
+            indices.add(Integer.toString(i));
+        }
+        return indices.toString();
+    }
+
+    private static List<List<RouteResult>> failureMatrix(
+            int originCount, int destinationCount, String reason) {
+        List<List<RouteResult>> matrix = new ArrayList<>(originCount);
+        for (int i = 0; i < originCount; i++) {
+            List<RouteResult> row = new ArrayList<>(destinationCount);
+            for (int j = 0; j < destinationCount; j++) {
+                row.add(RouteResult.failure(reason));
+            }
+            matrix.add(List.copyOf(row));
+        }
+        return List.copyOf(matrix);
+    }
+
+    private static List<List<RouteResult>> immutableMatrix(List<List<RouteResult>> matrix) {
+        return matrix.stream().map(List::copyOf).toList();
     }
 
     private RouteResult interpret(HttpResponse<String> response) {

@@ -19,6 +19,7 @@ import app.meethalfway.meetings.domain.model.ServiceBounds;
 import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.meetings.domain.model.StrategyResults;
 import app.meethalfway.shared.domain.TransportMode;
+import app.meethalfway.routing.domain.port.RoutingProvider;
 import app.meethalfway.shared.testing.FakeRoutingProvider;
 
 /**
@@ -222,6 +223,54 @@ class RecommendationEngineTest {
         // Dropping the exaggerated participant lowers the group average travel time.
         assertThat(tradeoff.avgTravelTimeExcluding())
                 .isLessThan(tradeoff.avgTravelTimeIncluding());
+    }
+
+    @Test
+    void excludingOutlierSearchesANewGridFromOnlyTheRemainingParticipants() {
+        MeetingInput input = meeting(
+                participant("alice", ALICE),
+                participant("bob", BOB),
+                participant("carol", CAROL));
+        FakeRoutingProvider delegate = FakeRoutingProvider.builder()
+                .withOutlierOrigin(CAROL, 20.0)
+                .build();
+        List<List<Coordinate>> requestedOrigins = new java.util.ArrayList<>();
+        List<List<Coordinate>> requestedDestinations = new java.util.ArrayList<>();
+        RoutingProvider routing = new RoutingProvider() {
+            @Override
+            public app.meethalfway.routing.domain.port.RouteResult travelTime(
+                    Coordinate origin, Coordinate destination, TransportMode mode) {
+                return delegate.travelTime(origin, destination, mode);
+            }
+
+            @Override
+            public List<List<app.meethalfway.routing.domain.port.RouteResult>> travelTimes(
+                    List<Coordinate> origins, List<Coordinate> destinations, TransportMode mode) {
+                requestedOrigins.add(List.copyOf(origins));
+                requestedDestinations.add(List.copyOf(destinations));
+                return RoutingProvider.super.travelTimes(origins, destinations, mode);
+            }
+        };
+
+        RecommendationOutcome outcome = engine.compute(input, config(), routing);
+
+        assertThat(outcome).isInstanceOf(RecommendationOutcome.Success.class);
+        OutlierTradeoff tradeoff = ((RecommendationOutcome.Success) outcome)
+                .tradeoff().orElseThrow();
+        assertThat(tradeoff.outliers()).containsExactly(new ParticipantId("carol"));
+        assertThat(requestedOrigins).containsExactly(
+                List.of(ALICE, BOB, CAROL),
+                List.of(ALICE, BOB));
+        assertThat(requestedDestinations).hasSize(2);
+        assertThat(requestedDestinations.get(0))
+                .isEqualTo(new GridCandidateGenerator().generate(List.of(ALICE, BOB, CAROL), config()));
+        assertThat(requestedDestinations.get(1))
+                .isEqualTo(new GridCandidateGenerator().generate(List.of(ALICE, BOB), config()))
+                .isNotEqualTo(requestedDestinations.get(0));
+        assertThat(tradeoff.excluding().fastest().perParticipant())
+                .doesNotContainKey(new ParticipantId("carol"));
+        assertThat(tradeoff.excluding().fastest().point())
+                .isNotEqualTo(tradeoff.including().fastest().point());
     }
 
     @Test
