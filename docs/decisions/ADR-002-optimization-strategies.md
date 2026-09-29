@@ -1,44 +1,51 @@
-# ADR-002: Optimization Strategies
+# ADR-002: Recommendation strategies
 
-- Status: Proposed (placeholder)
-- Date: TBD
+- Status: Accepted
+- Date: 2026-09-28
 - Deciders: MeetHalfway team
 
 ## Context
 
-The engine returns three recommended meeting points — **Fastest**, **Minimax**,
-and **Fairest** — each selected by minimizing a metric over real travel times
-rather than by picking the geographic midpoint. Selection must be
-**deterministic**: the same inputs always produce the same outputs
-(Requirements 2–4).
+The application returns one meeting point for each of three different
+priorities. The scores are based on routed whole-minute travel times, not
+geographic distance alone. Results must be deterministic for the same inputs.
 
 ## Decision
 
-TBD — record the mathematical definitions and deterministic tie-break chains
-here, including:
+Evaluate all candidates using the same participant travel-time vector and
+select each strategy independently:
 
-- **Fastest** — minimizes `Sum_Time` (Σ tᵢ). Tie-break order:
-  `Σ → max → σ → distance-to-centroid`.
-- **Minimax** — minimizes `Max_Time` (max tᵢ). Tie-break order:
-  `max → Σ → σ → distance-to-centroid`.
-- **Fairest** — restricted to the feasible set `Σ ≤ 1.15 · T*`
-  (T* = min Σ), then minimizes `Std_Dev` (σ). Tie-break order:
-  `σ → Σ → max → distance-to-centroid`.
-- **Efficiency_Tolerance** — a fixed 15% constant (`EFFICIENCY_TOLERANCE = 0.15`),
-  NOT a configuration field (Requirement 4.3).
-- **Equality_Threshold (ε)** — float-comparison tolerance for metric ties,
-  `areEqual(a, b) := |a − b| < ε`, with ε ≈ 0.5 minute, read from config.
-- **Geographic_Centroid** — arithmetic mean of participant locations, used only
-  as the final tie-breaker (applied without ε to guarantee a total order).
+- **Fastest:** minimize total travel time (`sumTime`), then compare `maxTime`,
+  standard deviation, distance to the geographic centroid, and exact latitude
+  and longitude.
+- **Minimax:** minimize the longest participant trip (`maxTime`), then compare
+  `sumTime`, standard deviation, centroid distance, and exact coordinates.
+- **Fairest:** first retain candidates whose `sumTime` is at most
+  `1.15 × T* + ε`, where `T*` is the minimum `sumTime`; then minimize standard
+  deviation, `sumTime`, `maxTime`, centroid distance, and exact coordinates.
+
+Metric comparisons use configured `epsilonMinutes` (default 0.5); two values
+whose difference is strictly less than epsilon compare equal. At each priority,
+selection keeps candidates within epsilon of that stage's minimum before
+advancing to the next metric. This avoids using a pairwise epsilon comparator,
+whose ties are not transitive and could make the selected point depend on grid
+iteration order. The final centroid-distance and exact-coordinate comparisons
+are not epsilon-based, which keeps selection deterministic, including
+candidates equidistant from the centroid. The 15% Fairest efficiency tolerance
+is a fixed domain constant, not a deployment setting.
+
+Outliers are detected from the Fastest result using a configurable multiple of
+the median participant travel time (default `k = 2`). A participant is flagged
+only when their time is strictly greater than `k × median`. When any are found,
+the application presents all-participant recommendations alongside a second
+calculation excluding those outliers; it never silently removes them from the
+primary result.
 
 ## Consequences
 
-- These definitions and tie-break chains are encoded by Properties 5–10.
-- The fixed tolerance and config-driven ε keep the strategies deterministic and
-  city-agnostic.
-
-## Notes
-
-This is a placeholder ADR created during scaffolding (task 1.1). It will be
-completed as the strategy selectors and tie-breaker are implemented
-(tasks 5.1–5.4).
+- Each selector is a small concrete domain class for a distinct business rule;
+  no generic selector plug-in framework is needed.
+- Jqwik properties protect optimality, feasibility, deterministic tie-breaking,
+  and outlier transparency.
+- The strategy response fields remain part of the current API contract even
+  where their information is derivable by clients.
