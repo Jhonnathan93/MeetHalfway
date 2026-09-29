@@ -29,7 +29,7 @@ import {
 /** The request phase driving which state the map presents. */
 export type MapPhase = 'loading' | 'error' | 'success'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   /** Current request phase (from App.vue's submitting/errorMessage refs). */
   phase: MapPhase
   /** Strategy results to render; null when no recommendation is present. */
@@ -40,7 +40,12 @@ const props = defineProps<{
   warnings: CoordinateWarning[]
   /** Optional human-readable error text for the error state. */
   errorMessage?: string
-}>()
+  selectedParticipantId?: string | null
+}>(), {
+  selectedParticipantId: null,
+})
+
+const emit = defineEmits<{ selectParticipant: [participantId: string] }>()
 
 const { t } = useI18n()
 
@@ -90,7 +95,9 @@ const originMarkers = computed<OriginMarker[]>(() =>
   props.participants.map((participant) => ({
     participantId: participant.id,
     label: participant.name.length > 0 ? participant.name : participant.id,
+    initials: (participant.name.trim().slice(0, 2) || participant.id.slice(0, 2)).toUpperCase(),
     point: participant.location,
+    selected: participant.id === props.selectedParticipantId,
   })),
 )
 
@@ -148,13 +155,17 @@ function draw(): void {
     controller.clear()
     return
   }
-  controller.render({ candidates: candidateMarkers.value, origins: originMarkers.value })
+  controller.render({
+    candidates: candidateMarkers.value,
+    origins: originMarkers.value,
+    onOriginSelect: (participantId) => emit('selectParticipant', participantId),
+  })
 }
 
 // Mount the Leaflet map when the container becomes available (success phase),
 // then keep markers in sync with the props.
 watch(
-  [mapContainer, () => props.phase, candidateMarkers, originMarkers],
+  [mapContainer, () => props.phase, candidateMarkers, originMarkers, () => props.selectedParticipantId],
   () => {
     if (mapContainer.value && props.phase === 'success') {
       controller.mount(mapContainer.value)
@@ -170,74 +181,80 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section class="map-view" aria-label="map">
-    <h2 class="map-view__heading">{{ t('map.heading') }}</h2>
+  <section class="map-view" :aria-label="t('map.canvasLabel')">
+    <div ref="mapContainer" class="map-view__canvas" data-testid="map-canvas" />
+    <div v-if="phase === 'loading' || phase === 'error' || !hasCandidates" class="map-view__state" :class="{ 'map-view__state--error': phase === 'error' }" :role="phase === 'error' ? 'alert' : 'status'">
+      <span class="map-view__state-icon" aria-hidden="true">{{ phase === 'error' ? '!' : phase === 'loading' ? '…' : '◎' }}</span>
+      <div>
+        <h2>{{ phase === 'loading' ? t('map.loadingTitle') : phase === 'error' ? t('map.errorTitle') : t('map.noPointTitle') }}</h2>
+        <p>{{ phase === 'loading' ? t('map.loading') : phase === 'error' ? (errorMessage && errorMessage.length > 0 ? errorMessage : t('map.error')) : t('map.noPointDescription') }}</p>
+      </div>
+    </div>
 
-    <p v-if="phase === 'loading'" class="map-view__state" role="status">
-      {{ t('map.loading') }}
-    </p>
-
-    <p v-else-if="phase === 'error'" class="map-view__state map-view__state--error" role="alert">
-      {{ errorMessage && errorMessage.length > 0 ? errorMessage : t('map.error') }}
-    </p>
-
-    <p v-else-if="!hasCandidates" class="map-view__state" role="status">
-      {{ t('map.empty') }}
-    </p>
-
-    <template v-else>
-      <div ref="mapContainer" class="map-view__canvas" data-testid="map-canvas" />
-
-      <ul
-        v-if="excludedPoints.length > 0"
-        class="map-view__notice"
-        role="note"
-        aria-label="excluded-points"
-      >
-        <li class="map-view__notice-heading">{{ t('map.excludedHeading') }}</li>
-        <li v-for="excluded in excludedPoints" :key="excluded.reference">
-          {{ excluded.label }}
-          <span class="map-view__notice-coord">
-            ({{ excluded.point.lat }}, {{ excluded.point.lng }})
-          </span>
-        </li>
-      </ul>
-    </template>
+    <ul
+      v-if="excludedPoints.length > 0"
+      class="map-view__notice"
+      role="note"
+      aria-label="excluded-points"
+    >
+      <li class="map-view__notice-heading">{{ t('map.excludedHeading') }}</li>
+      <li v-for="excluded in excludedPoints" :key="excluded.reference">
+        {{ excluded.label }}
+        <span class="map-view__notice-coord">
+          ({{ excluded.point.lat }}, {{ excluded.point.lng }})
+        </span>
+      </li>
+    </ul>
   </section>
 </template>
 
 <style scoped>
 .map-view {
-  margin-top: var(--space-4);
-}
-
-.map-view__heading {
-  margin: 0 0 var(--space-3);
-  font-size: 1.25rem;
+  position: absolute;
+  inset: 0;
 }
 
 .map-view__state {
+  position: absolute;
+  z-index: 500;
+  top: 50%;
+  left: 50%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: min(390px, calc(100% - 48px));
+  padding: var(--space-4);
   color: var(--color-text-muted);
-  margin: 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-map-overlay);
+  box-shadow: var(--shadow-panel);
+  transform: translate(-50%, -50%);
 }
 
-.map-view__state--error {
+.map-view__state h2 { margin: 0 0 3px; color: var(--color-text); font-family: var(--font-display); font-size: 1.45rem; font-weight: 400; letter-spacing: .035em; }
+.map-view__state p { margin: 0; font-size: .82rem; line-height: 1.5; }
+.map-view__state-icon { display: grid; flex: 0 0 auto; place-items: center; width: 32px; height: 32px; border-radius: 50%; color: var(--color-primary-hover); background: var(--color-primary-soft); font-size: 1.1rem; font-weight: 800; }
+.map-view__state--error .map-view__state-icon { color: var(--color-danger); background: rgba(255, 104, 121, .13); }
+
+.map-view__state--error h2 {
   color: var(--color-danger);
 }
 
 .map-view__canvas {
   width: 100%;
-  height: 420px;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  /* Leaflet needs an explicit background so tiles loading is not jarring. */
+  height: 100%;
   background-color: var(--color-surface-raised);
 }
 
 .map-view__notice {
   list-style: none;
-  margin: var(--space-3) 0 0;
+  position: absolute;
+  z-index: 500;
+  top: var(--space-4);
+  left: var(--space-4);
+  max-width: min(420px, calc(100% - 32px));
+  margin: 0;
   padding: var(--space-3);
   border: 1px solid var(--color-danger);
   border-radius: var(--radius-md);
@@ -259,8 +276,14 @@ onBeforeUnmount(() => {
 
 /* Marker visual treatments: recommendations use one color per strategy. */
 :global(.map-marker) {
+  display: grid;
+  place-items: center;
   border-radius: 50%;
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: .62rem;
+  font-weight: 800;
 }
 
 :global(.map-marker--fastest) {
@@ -279,7 +302,13 @@ onBeforeUnmount(() => {
 }
 
 :global(.map-marker--origin) {
-  background-color: var(--color-danger);
-  border: 2px solid #ffffff;
+  background-color: #eef2fa;
+  border: 3px solid #263246;
+  color: #182232;
+}
+
+:global(.map-marker--origin-selected) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 5px rgba(91, 140, 255, .3), 0 4px 12px rgba(0, 0, 0, .45);
 }
 </style>

@@ -174,33 +174,40 @@ function onSubmit(): void {
 .meeting-form {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-4);
+  margin-top: var(--space-5);
 }
 
 .meeting-form__heading {
   margin: 0;
-  font-size: 1.25rem;
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 400;
+  letter-spacing: 0.035em;
 }
 
 .meeting-form__mode {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3);
   display: flex;
   gap: var(--space-4);
+  color: var(--color-text-muted);
+  font-size: .84rem;
 }
 
 .meeting-form__participant {
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-2);
+  padding: var(--space-3);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
-  margin-bottom: var(--space-2);
+  margin-bottom: var(--space-3);
+  background: var(--color-surface-raised);
 }
 
 .meeting-form__name {
-  background-color: var(--color-surface-raised);
+  background-color: var(--color-surface);
   color: var(--color-text);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -231,6 +238,10 @@ function onSubmit(): void {
   opacity: 0.6;
   cursor: not-allowed;
 }
+
+.meeting-form__submit { min-height: 42px; font-weight: 700; }
+.meeting-form__add { justify-self: start; background: var(--color-surface-hover); }
+.meeting-form__add:hover, .meeting-form__submit:not(:disabled):hover { background: var(--color-primary-hover); }
 
 .meeting-form__error {
   margin: 0;

@@ -234,6 +234,22 @@ describe('MapView origin markers (R11.5)', () => {
   })
 })
 
+describe('MapView participant selection', () => {
+  it('keeps marker selection in the application state callback', async () => {
+    const wrapper = mountMapView({ phase: 'success', results: makeResults(), participants: makeParticipants(2) })
+    await settle()
+
+    const data = lastRender()
+    expect(data.origins.every((origin) => !origin.selected)).toBe(true)
+    data.onOriginSelect?.('p2')
+    expect(wrapper.emitted('selectParticipant')).toEqual([['p2']])
+
+    await wrapper.setProps({ selectedParticipantId: 'p2' })
+    await settle()
+    expect(lastRender().origins.find((origin) => origin.participantId === 'p2')?.selected).toBe(true)
+  })
+})
+
 describe('MapView bounds fitting (R11.3)', () => {
   it('mounts the map and renders markers so the composable can fit bounds — R11.3', async () => {
     mountMapView({ phase: 'success', results: makeResults(), participants: makeParticipants(3) })
@@ -265,9 +281,9 @@ describe('MapView loading state (R11.8, R11.9)', () => {
     })
     await settle()
 
-    expect(wrapper.find('[role="status"]').text()).toBe(messages.en.map.loading)
-    // No canvas while loading; markers are never rendered as current results.
-    expect(wrapper.find('[data-testid="map-canvas"]').exists()).toBe(false)
+    expect(wrapper.find('[role="status"]').text()).toContain(messages.en.map.loading)
+    // Markers are never rendered as current results, but the map stays visible.
+    expect(wrapper.find('[data-testid="map-canvas"]').exists()).toBe(true)
     expect(controllerSpy.render).not.toHaveBeenCalled()
   })
 
@@ -287,7 +303,7 @@ describe('MapView loading state (R11.8, R11.9)', () => {
 
     // The previous response's markers are cleared, not shown as current.
     expect(controllerSpy.clear).toHaveBeenCalled()
-    expect(wrapper.find('[data-testid="map-canvas"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="map-canvas"]').exists()).toBe(true)
   })
 })
 
@@ -298,9 +314,9 @@ describe('MapView error state (R11.9)', () => {
 
     const alert = wrapper.find('[role="alert"]')
     expect(alert.exists()).toBe(true)
-    expect(alert.text()).toBe(messages.en.map.error)
+    expect(alert.text()).toContain(messages.en.map.error)
     expect(controllerSpy.render).not.toHaveBeenCalled()
-    expect(wrapper.find('[data-testid="map-canvas"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="map-canvas"]').exists()).toBe(true)
   })
 
   it('clears stale markers when a success response is followed by a failure — R11.9', async () => {
@@ -318,7 +334,7 @@ describe('MapView error state (R11.9)', () => {
 
     // Markers from the previous response are cleared on failure (R11.9).
     expect(controllerSpy.clear).toHaveBeenCalled()
-    expect(wrapper.find('[data-testid="map-canvas"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="map-canvas"]').exists()).toBe(true)
   })
 
   it('shows the provided error message when one is supplied — R11.9', async () => {
@@ -328,7 +344,7 @@ describe('MapView error state (R11.9)', () => {
       errorMessage: 'Routing failed for two participants',
     })
     await settle()
-    expect(wrapper.find('[role="alert"]').text()).toBe('Routing failed for two participants')
+    expect(wrapper.find('[role="alert"]').text()).toContain('Routing failed for two participants')
   })
 })
 
@@ -341,10 +357,10 @@ describe('MapView empty state (R11.6)', () => {
     })
     await settle()
 
-    expect(wrapper.find('[role="status"]').text()).toBe(messages.en.map.empty)
-    expect(wrapper.find('[data-testid="map-canvas"]').exists()).toBe(false)
-    // With no candidates the map is not mounted and no markers are rendered.
-    expect(controllerSpy.render).not.toHaveBeenCalled()
+    expect(wrapper.find('[role="status"]').text()).toContain(messages.en.map.noPointDescription)
+    expect(wrapper.find('[data-testid="map-canvas"]').exists()).toBe(true)
+    // The empty map still mounts but receives no candidate markers.
+    expect(controllerSpy.render).toHaveBeenCalled()
   })
 })
 

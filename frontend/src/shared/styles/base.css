@@ -26,36 +26,47 @@ body {
 }
 
 #app {
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
-/* Desktop-first container: full desktop width capped, centered. */
-.app-container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: var(--space-4);
+h1,
+h2,
+h3,
+p {
+  margin-top: 0;
 }
 
-.app-main {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: var(--space-4);
+button,
+input,
+select {
+  font: inherit;
 }
 
-/* Tablet */
-@media (max-width: 1024px) {
-  .app-container {
-    padding: var(--space-3);
-  }
-  .app-main {
-    grid-template-columns: 1fr;
-  }
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
 }
 
-/* Mobile */
-@media (max-width: 640px) {
-  .app-container {
-    padding: var(--space-2);
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
   }
 }

@@ -22,6 +22,7 @@ export function useMeetingFlow() {
   const errorMessage = ref('')
   const submitting = ref(false)
   const outlierVariant = ref<OutlierVariant>('including')
+  const selectedParticipantId = ref<string | null>(null)
 
   const displayResults = computed<StrategyResults | null>(() => {
     const tradeoff = recommendation.value?.outlierTradeoff
@@ -57,6 +58,7 @@ export function useMeetingFlow() {
     routingFailure.value = null
     recommendation.value = null
     outlierVariant.value = 'including'
+    selectedParticipantId.value = null
     try {
       const created = await createMeeting(request)
       meeting.value = created
@@ -76,10 +78,22 @@ export function useMeetingFlow() {
     meeting,
     recommendation,
     outlierVariant,
+    selectedParticipantId,
     displayResults,
     displayParticipants,
     selectOutlierVariant: (variant: OutlierVariant) => {
       outlierVariant.value = variant
+      if (selectedParticipantId.value && !displayParticipants.value.some(
+        ({ id }) => id === selectedParticipantId.value,
+      )) {
+        selectedParticipantId.value = null
+      }
+    },
+    selectParticipant: (participantId: string) => {
+      selectedParticipantId.value = participantId
+    },
+    clearSelectedParticipant: () => {
+      selectedParticipantId.value = null
     },
     routingFailure,
     errorMessage,

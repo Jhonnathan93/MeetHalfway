@@ -21,13 +21,13 @@ function mountApp(locale: Locale = 'en') {
 describe('App shell', () => {
   it('renders the application title (Vue Test Utils smoke test)', () => {
     const wrapper = mountApp()
-    expect(wrapper.find('.app-title').text()).toBe('MeetHalfway')
+    expect(wrapper.find('.app-navbar__brand').text()).toContain('MeetHalfway')
   })
 
-  it('renders the desktop-first layout regions', () => {
+  it('renders the map-first workspace regions', () => {
     const wrapper = mountApp()
-    expect(wrapper.find('.meeting-layout').exists()).toBe(true)
-    expect(wrapper.find('.meeting-content').exists()).toBe(true)
+    expect(wrapper.find('.meeting-workspace').exists()).toBe(true)
+    expect(wrapper.find('.meeting-map-area').exists()).toBe(true)
     expect(wrapper.find('.meeting-sidebar').exists()).toBe(true)
   })
 

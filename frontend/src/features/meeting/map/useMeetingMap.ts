@@ -67,13 +67,16 @@ export interface OriginMarker {
   /** Stable participant id, used as an accessible label / popup title. */
   participantId: string
   label: string
+  initials: string
   point: Coordinate
+  selected: boolean
 }
 
 /** Everything the composable needs to (re)draw the map. */
 export interface MeetingMapData {
   candidates: CandidateMarker[]
   origins: OriginMarker[]
+  onOriginSelect?: (participantId: string) => void
 }
 
 /** Tile layer configuration; OpenStreetMap raster tiles (free, no key). */
@@ -99,17 +102,26 @@ export const MARKER_CLASS = {
 function candidateIcon(strategy: StrategyKey): L.DivIcon {
   return L.divIcon({
     className: MARKER_CLASS[strategy],
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
+    html: `<span>${strategy.slice(0, 1).toUpperCase()}</span>`,
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
   })
 }
 
-function originIcon(): L.DivIcon {
+function originIcon(origin: OriginMarker): L.DivIcon {
   return L.divIcon({
-    className: MARKER_CLASS.origin,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
+    className: `${MARKER_CLASS.origin}${origin.selected ? ' map-marker--origin-selected' : ''}`,
+    html: `<span>${escapeMarkerLabel(origin.initials)}</span>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 17],
   })
+}
+
+function escapeMarkerLabel(value: string): string {
+  const escaped: Record<string, string> = {
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }
+  return value.replace(/[&<>"']/g, (character) => escaped[character] ?? character)
 }
 
 /**
@@ -134,6 +146,7 @@ export function useMeetingMap(): MeetingMapController {
   let map: L.Map | null = null
   let markerLayer: L.LayerGroup | null = null
   let mountedContainer: HTMLElement | null = null
+  let lastBoundsFingerprint = ''
 
   function mount(container: HTMLElement): void {
     if (map && mountedContainer === container) {
@@ -158,13 +171,16 @@ export function useMeetingMap(): MeetingMapController {
 
   function clear(): void {
     markerLayer?.clearLayers()
+    lastBoundsFingerprint = ''
   }
 
   function render(data: MeetingMapData): void {
     if (!map || !markerLayer) {
       return
     }
-    clear()
+    // Re-render markers without resetting the bounds fingerprint: selecting a
+    // person changes marker treatment but should not yank the user's map view.
+    markerLayer.clearLayers()
 
     const bounds = L.latLngBounds([])
     let hasMarker = false
@@ -188,8 +204,9 @@ export function useMeetingMap(): MeetingMapController {
         continue
       }
       const latLng: L.LatLngExpression = [origin.point.lat, origin.point.lng]
-      L.marker(latLng, { icon: originIcon(), title: origin.label })
-        .bindPopup(origin.label)
+      L.marker(latLng, { icon: originIcon(origin), title: origin.label, keyboard: true })
+        .bindTooltip(origin.label, { direction: 'top', offset: [0, -12] })
+        .on('click', () => data.onOriginSelect?.(origin.participantId))
         .addTo(markerLayer)
       bounds.extend(latLng)
       hasMarker = true
@@ -197,10 +214,18 @@ export function useMeetingMap(): MeetingMapController {
 
     // Auto-fit bounds over every valid marker (R11.3); fall back to the default
     // view when nothing valid is on the map.
-    if (hasMarker && bounds.isValid()) {
+    const boundsFingerprint = [
+      ...data.candidates.map(({ point }) => `${point.lat},${point.lng}`),
+      ...data.origins.map(({ point }) => `${point.lat},${point.lng}`),
+    ].join('|')
+    if (hasMarker && bounds.isValid() && boundsFingerprint !== lastBoundsFingerprint) {
       map.fitBounds(bounds, { padding: [32, 32], maxZoom: MAX_FIT_ZOOM })
+      lastBoundsFingerprint = boundsFingerprint
     } else {
-      map.setView(FALLBACK_CENTER, FALLBACK_ZOOM)
+      if (!hasMarker) {
+        map.setView(FALLBACK_CENTER, FALLBACK_ZOOM)
+        lastBoundsFingerprint = ''
+      }
     }
   }
 
