@@ -133,10 +133,17 @@ export interface MeetingMapController {
 export function useMeetingMap(): MeetingMapController {
   let map: L.Map | null = null
   let markerLayer: L.LayerGroup | null = null
+  let mountedContainer: HTMLElement | null = null
 
   function mount(container: HTMLElement): void {
-    if (map) {
+    if (map && mountedContainer === container) {
       return
+    }
+    // MapView temporarily removes the canvas from the DOM while a new search
+    // is loading. On success Vue creates a fresh element; a Leaflet instance
+    // cannot be reused with that different container.
+    if (map) {
+      destroy()
     }
     map = L.map(container, {
       center: FALLBACK_CENTER,
@@ -144,6 +151,7 @@ export function useMeetingMap(): MeetingMapController {
       // Keep interaction minimal (pan/zoom); no advanced GIS controls (R11.10).
       attributionControl: true,
     })
+    mountedContainer = container
     L.tileLayer(TILE_URL, { attribution: TILE_ATTRIBUTION, maxZoom: 19 }).addTo(map)
     markerLayer = L.layerGroup().addTo(map)
   }
@@ -201,6 +209,7 @@ export function useMeetingMap(): MeetingMapController {
     markerLayer = null
     map?.remove()
     map = null
+    mountedContainer = null
   }
 
   return { mount, render, clear, destroy }
