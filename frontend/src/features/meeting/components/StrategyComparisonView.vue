@@ -31,6 +31,25 @@ interface StrategyCard {
 
 const minutesUnit = computed(() => t('results.minutes'))
 
+const strategiesConverged = computed(() => {
+  const [firstKey, ...otherKeys] = STRATEGY_KEYS
+  const first = props.results[firstKey]
+
+  return otherKeys.every((key) => {
+    const result = props.results[key]
+    const participantIds = Object.keys(first.perParticipant)
+    return (
+      result.point.lat === first.point.lat &&
+      result.point.lng === first.point.lng &&
+      result.sumTime === first.sumTime &&
+      result.maxTime === first.maxTime &&
+      result.stdDev === first.stdDev &&
+      participantIds.length === Object.keys(result.perParticipant).length &&
+      participantIds.every((id) => result.perParticipant[id] === first.perParticipant[id])
+    )
+  })
+})
+
 const cards = computed<StrategyCard[]>(() =>
   STRATEGY_KEYS.map((key) => {
     const result = props.results[key]
@@ -55,6 +74,9 @@ const cards = computed<StrategyCard[]>(() =>
 <template>
   <section class="strategy-comparison" aria-label="results">
     <h2 class="strategy-comparison__heading">{{ t('results.heading') }}</h2>
+    <p v-if="strategiesConverged" class="strategy-comparison__converged" role="status">
+      {{ t('results.converged') }}
+    </p>
     <div class="strategy-comparison__grid">
       <article
         v-for="card in cards"
@@ -104,6 +126,12 @@ const cards = computed<StrategyCard[]>(() =>
 .strategy-comparison__heading {
   margin: 0 0 var(--space-3);
   font-size: 1.25rem;
+}
+
+.strategy-comparison__converged {
+  margin: calc(var(--space-2) * -1) 0 var(--space-3);
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
 }
 
 .strategy-comparison__grid {

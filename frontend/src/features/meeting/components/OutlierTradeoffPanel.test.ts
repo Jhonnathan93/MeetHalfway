@@ -34,5 +34,22 @@ describe('OutlierTradeoffPanel', () => {
     expect(wrapper.find('[data-variant="including"]').exists()).toBe(true)
     expect(wrapper.find('[data-variant="excluding"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Ana')
+    expect(wrapper.get('[data-testid="outlier-choose-including"]').attributes('aria-pressed')).toBe('true')
+    expect(wrapper.get('[data-testid="outlier-choose-excluding"]').attributes('aria-pressed')).toBe('false')
+  })
+
+  it('emits the requested participant set when a choice is clicked', async () => {
+    const tradeoff: OutlierTradeoff = {
+      outliers: ['a'], including: results, excluding: results,
+      avgTravelTimeIncluding: 15, avgTravelTimeExcluding: 10,
+    }
+    const wrapper = mount(OutlierTradeoffPanel, {
+      global: { plugins: [makeI18n()] },
+      props: { tradeoff, participantNames: { a: 'Ana' } },
+    })
+
+    await wrapper.get('[data-testid="outlier-choose-excluding"]').trigger('click')
+
+    expect(wrapper.emitted('select-variant')).toEqual([['excluding']])
   })
 })

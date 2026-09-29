@@ -2,7 +2,14 @@ import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { computeRecommendations, createMeeting } from './meetingApi'
 import { RoutingFailureError } from '@/shared/api/errors'
-import type { Meeting, MeetingRequest, Recommendation, RoutingFailure } from './types'
+import type {
+  Meeting,
+  MeetingRequest,
+  OutlierVariant,
+  Recommendation,
+  RoutingFailure,
+  StrategyResults,
+} from './types'
 
 export type MapPhase = 'loading' | 'error' | 'success'
 
@@ -14,6 +21,19 @@ export function useMeetingFlow() {
   const routingFailure = ref<RoutingFailure | null>(null)
   const errorMessage = ref('')
   const submitting = ref(false)
+  const outlierVariant = ref<OutlierVariant>('including')
+
+  const displayResults = computed<StrategyResults | null>(() => {
+    const tradeoff = recommendation.value?.outlierTradeoff
+    if (!recommendation.value) return null
+    if (!tradeoff) return recommendation.value.results
+    return tradeoff[outlierVariant.value]
+  })
+
+  const displayParticipants = computed(() => {
+    const participantIds = new Set(Object.keys(displayResults.value?.fastest.perParticipant ?? {}))
+    return (meeting.value?.participants ?? []).filter(({ id }) => participantIds.has(id))
+  })
 
   const participantNames = computed<Record<string, string>>(() => {
     const names: Record<string, string> = {}
@@ -36,6 +56,7 @@ export function useMeetingFlow() {
     errorMessage.value = ''
     routingFailure.value = null
     recommendation.value = null
+    outlierVariant.value = 'including'
     try {
       const created = await createMeeting(request)
       meeting.value = created
@@ -54,6 +75,12 @@ export function useMeetingFlow() {
   return {
     meeting,
     recommendation,
+    outlierVariant,
+    displayResults,
+    displayParticipants,
+    selectOutlierVariant: (variant: OutlierVariant) => {
+      outlierVariant.value = variant
+    },
     routingFailure,
     errorMessage,
     submitting,

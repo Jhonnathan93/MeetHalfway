@@ -49,6 +49,7 @@ const en = {
     maxTime: 'Longest single trip',
     stdDev: 'Travel-time spread',
     minutes: 'min',
+    converged: 'All three strategies selected the same point and travel times for this group.',
     empty: 'No results yet. Create a meeting to see recommendations.',
   },
   map: {
@@ -69,6 +70,9 @@ const en = {
     avgIncluding: 'Average travel time (including)',
     avgExcluding: 'Average travel time (excluding)',
     choose: 'You decide who to include.',
+    useIncluding: 'Use recommendations for everyone',
+    useExcluding: 'Exclude: {names}',
+    selected: 'Selected',
   },
   routingError: {
     heading: 'Some locations could not be routed',
@@ -134,6 +138,7 @@ const es: MessageSchema = {
     maxTime: 'Viaje individual más largo',
     stdDev: 'Dispersión del tiempo de viaje',
     minutes: 'min',
+    converged: 'Las tres estrategias eligieron el mismo punto y los mismos tiempos para este grupo.',
     empty: 'Aún no hay resultados. Crea una reunión para ver recomendaciones.',
   },
   map: {
@@ -154,6 +159,9 @@ const es: MessageSchema = {
     avgIncluding: 'Tiempo de viaje promedio (incluyendo)',
     avgExcluding: 'Tiempo de viaje promedio (excluyendo)',
     choose: 'Tú decides a quién incluir.',
+    useIncluding: 'Usar recomendaciones con todos',
+    useExcluding: 'Excluir: {names}',
+    selected: 'Seleccionado',
   },
   routingError: {
     heading: 'No se pudieron calcular algunas rutas',

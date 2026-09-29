@@ -95,4 +95,77 @@ describe('MeetingView flow', () => {
     expect(wrapper.findAll('.strategy-card')).toHaveLength(0)
     expect(wrapper.find('[data-testid="map-stub"]').attributes('data-phase')).toBe('error')
   })
+
+  it('applies the outlier choice to both recommendations and the map', async () => {
+    const meetingWithOutlier: Meeting = {
+      ...meeting,
+      participants: [
+        ...meeting.participants,
+        { id: 'p2', name: 'Santiago', location: { lat: 6.3, lng: -75.6 } },
+      ],
+    }
+    const includingResult = {
+      ...result,
+      perParticipant: { p1: 10, p2: 27 },
+      sumTime: 37,
+      maxTime: 27,
+      stdDev: 8.5,
+    }
+    const excludingResult = {
+      ...result,
+      point: { lat: 6.24, lng: -75.59 },
+      perParticipant: { p1: 7 },
+      sumTime: 7,
+      maxTime: 7,
+      stdDev: 0,
+    }
+    const withOutlierTradeoff: Recommendation = {
+      results: {
+        fastest: includingResult,
+        minimax: { ...includingResult, candidateId: 'minimax' },
+        fairest: { ...includingResult, candidateId: 'fairest' },
+      },
+      outlierTradeoff: {
+        outliers: ['p2'],
+        including: {
+          fastest: includingResult,
+          minimax: { ...includingResult, candidateId: 'minimax' },
+          fairest: { ...includingResult, candidateId: 'fairest' },
+        },
+        excluding: {
+          fastest: excludingResult,
+          minimax: { ...excludingResult, candidateId: 'minimax' },
+          fairest: { ...excludingResult, candidateId: 'fairest' },
+        },
+        avgTravelTimeIncluding: 18.5,
+        avgTravelTimeExcluding: 7,
+      },
+      warnings: [],
+    }
+    vi.mocked(createMeeting).mockResolvedValueOnce(meetingWithOutlier)
+    vi.mocked(computeRecommendations).mockResolvedValueOnce(withOutlierTradeoff)
+    const wrapper = mountView()
+
+    wrapper.findComponent(MeetingFormStub).vm.$emit('submit', request)
+    await flushPromises()
+    expect(wrapper.findComponent(MapViewStub).props('participants')).toHaveLength(2)
+    expect(wrapper.get('[data-testid="outlier-choose-excluding"]').text()).toContain('Santiago')
+
+    await wrapper.get('[data-testid="outlier-choose-excluding"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.strategy-card').text()).toContain('7 min')
+    expect(wrapper.find('.strategy-card').text()).not.toContain('Santiago')
+    expect(wrapper.findComponent(MapViewStub).props('results').fastest.point).toEqual({
+      lat: 6.24,
+      lng: -75.59,
+    })
+    expect(wrapper.findComponent(MapViewStub).props('participants')).toEqual([meetingWithOutlier.participants[0]])
+
+    await wrapper.get('[data-testid="outlier-choose-including"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.findComponent(MapViewStub).props('results').fastest.point).toEqual(includingResult.point)
+    expect(wrapper.findComponent(MapViewStub).props('participants')).toHaveLength(2)
+  })
 })

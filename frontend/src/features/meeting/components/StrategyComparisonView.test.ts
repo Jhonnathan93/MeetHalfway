@@ -35,5 +35,21 @@ describe('StrategyComparisonView', () => {
     expect(wrapper.find('[data-strategy="fairest"]').exists()).toBe(true)
     expect(wrapper.text()).toContain('Ana')
     expect(wrapper.text()).toContain('Beto')
+    expect(wrapper.find('[role="status"]').exists()).toBe(false)
+  })
+
+  it('explains when all three strategies converge on identical results', () => {
+    const convergedResult = result(30, 'fastest')
+    const converged: StrategyResults = {
+      fastest: convergedResult,
+      minimax: { ...convergedResult, candidateId: 'minimax' },
+      fairest: { ...convergedResult, candidateId: 'fairest' },
+    }
+    const wrapper = mount(StrategyComparisonView, {
+      global: { plugins: [makeI18n()] },
+      props: { results: converged, participantNames: {} },
+    })
+
+    expect(wrapper.find('[role="status"]').text()).toContain('All three strategies selected the same point')
   })
 })

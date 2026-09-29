@@ -75,6 +75,9 @@ export interface OutlierTradeoff {
   avgTravelTimeExcluding: number
 }
 
+/** The participant set currently used to display recommendations and map markers. */
+export type OutlierVariant = 'including' | 'excluding'
+
 /** A successful recommendation (`RecommendationResponse`). */
 export interface Recommendation {
   results: StrategyResults

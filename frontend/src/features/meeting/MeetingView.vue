@@ -7,8 +7,10 @@ import MapView from './map/MapView.vue'
 import { useMeetingFlow } from './useMeetingFlow'
 
 const {
-  meeting,
   recommendation,
+  outlierVariant,
+  displayResults,
+  displayParticipants,
   routingFailure,
   errorMessage,
   submitting,
@@ -16,6 +18,7 @@ const {
   mapPhase,
   mapErrorMessage,
   submitMeeting,
+  selectOutlierVariant,
 } = useMeetingFlow()
 </script>
 
@@ -23,14 +26,16 @@ const {
   <main class="meeting-layout">
     <section class="meeting-content" aria-label="content">
       <StrategyComparisonView
-        v-if="recommendation"
-        :results="recommendation.results"
+        v-if="displayResults"
+        :results="displayResults"
         :participant-names="participantNames"
       />
       <OutlierTradeoffPanel
         v-if="recommendation && recommendation.outlierTradeoff"
         :tradeoff="recommendation.outlierTradeoff"
         :participant-names="participantNames"
+        :selected-variant="outlierVariant"
+        @select-variant="selectOutlierVariant"
       />
       <RoutingErrorNotice
         v-else-if="routingFailure"
@@ -42,8 +47,8 @@ const {
 
       <MapView
         :phase="mapPhase"
-        :results="recommendation ? recommendation.results : null"
-        :participants="meeting ? meeting.participants : []"
+        :results="displayResults"
+        :participants="displayParticipants"
         :warnings="recommendation ? recommendation.warnings : []"
         :error-message="mapErrorMessage"
       />
