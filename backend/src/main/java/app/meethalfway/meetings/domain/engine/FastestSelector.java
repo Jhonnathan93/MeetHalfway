@@ -3,7 +3,7 @@ package app.meethalfway.meetings.domain.engine;
 import java.util.List;
 
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
+import app.meethalfway.meetings.domain.model.StrategyResult;
 
 /**
  * Selects the {@code Fastest_Strategy} winner: the candidate that minimizes the
@@ -31,7 +31,7 @@ import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
  * <p>This is framework-free domain logic with no dependency on HTTP, persistence,
  * or any provider.
  */
-public final class FastestSelector implements StrategySelector {
+public final class FastestSelector {
 
     private final TieBreaker tieBreaker;
 
@@ -61,15 +61,10 @@ public final class FastestSelector implements StrategySelector {
      * @throws IllegalArgumentException if {@code candidates} is null/empty or
      *                                  {@code centroid} is null
      */
-    @Override
-    public EvaluatedCandidate select(List<EvaluatedCandidate> candidates, Coordinate centroid) {
+    public StrategyResult select(List<StrategyResult> candidates, Coordinate centroid) {
         return tieBreaker.selectWinner(
                 candidates,
-                tieBreaker.totalOrder(
-                        centroid,
-                        List.of(
-                                tieBreaker.bySumTime(),
-                                tieBreaker.byMaxTime(),
-                                tieBreaker.byStdDev())));
+                centroid,
+                List.of(StrategyResult::sumTime, StrategyResult::maxTime, StrategyResult::stdDev));
     }
 }

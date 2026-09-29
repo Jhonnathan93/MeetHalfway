@@ -4,10 +4,10 @@ import app.meethalfway.meetings.domain.engine.RecommendationEngine;
 import app.meethalfway.meetings.domain.model.EngineConfig;
 import app.meethalfway.meetings.domain.model.Meeting;
 import app.meethalfway.meetings.domain.model.RecommendationOutcome;
-import app.meethalfway.meetings.domain.model.MeetingRepository;
 import app.meethalfway.routing.domain.port.RoutingProvider;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import org.springframework.stereotype.Service;
 
 /**
  * Use case: compute and store the recommendation for a meeting (Requirements
@@ -22,10 +22,11 @@ import java.util.Optional;
  *       silently dropped and no partial result is stored (Requirement 6).</li>
  * </ul>
  *
- * <p>Framework-free application code with explicit constructor injection; wired
- * as a bean at the composition root. It depends only on domain ports and types.
+ * <p>The service coordinates domain logic through application ports and types;
+ * Spring manages its lifecycle through constructor injection.
  */
-public final class ComputeRecommendations {
+@Service
+public final class RecommendationService {
 
     private final RecommendationEngine engine;
     private final MeetingRepository repository;
@@ -38,23 +39,11 @@ public final class ComputeRecommendations {
      * @param routing    the routing provider port; must not be {@code null}
      * @param config     the engine configuration snapshot; must not be {@code null}
      */
-    public ComputeRecommendations(
+    public RecommendationService(
             RecommendationEngine engine,
             MeetingRepository repository,
             RoutingProvider routing,
             EngineConfig config) {
-        if (engine == null) {
-            throw new IllegalArgumentException("engine must not be null");
-        }
-        if (repository == null) {
-            throw new IllegalArgumentException("repository must not be null");
-        }
-        if (routing == null) {
-            throw new IllegalArgumentException("routing must not be null");
-        }
-        if (config == null) {
-            throw new IllegalArgumentException("config must not be null");
-        }
         this.engine = engine;
         this.repository = repository;
         this.routing = routing;
@@ -77,9 +66,11 @@ public final class ComputeRecommendations {
         Meeting meeting = found.get();
 
         RecommendationOutcome outcome = engine.compute(meeting.input(), config, routing);
-        if (outcome instanceof RecommendationOutcome.Success) {
+        if (outcome instanceof RecommendationOutcome.Success success) {
             Meeting withRecommendation =
-                    new Meeting(meeting.urlCode(), meeting.input(), Optional.of(outcome));
+                    new Meeting(
+                            meeting.urlCode(), meeting.input(),
+                            Optional.of(success));
             repository.save(withRecommendation);
         }
         return outcome;

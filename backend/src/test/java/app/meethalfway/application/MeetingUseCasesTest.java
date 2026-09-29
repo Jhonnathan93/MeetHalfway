@@ -8,12 +8,9 @@ import app.meethalfway.meetings.domain.model.Meeting;
 import app.meethalfway.shared.domain.ParticipantId;
 import app.meethalfway.meetings.domain.model.ParticipantInput;
 import app.meethalfway.shared.domain.TransportMode;
-import app.meethalfway.meetings.application.CreateMeeting;
-import app.meethalfway.meetings.application.DeleteMeeting;
-import app.meethalfway.meetings.application.EditMeeting;
-import app.meethalfway.meetings.application.GetMeeting;
+import app.meethalfway.meetings.application.MeetingService;
 import app.meethalfway.meetings.application.UrlCodeGenerator;
-import app.meethalfway.meetings.application.CreateMeeting.NewParticipant;
+import app.meethalfway.meetings.application.MeetingService.NewParticipant;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -21,21 +18,17 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 /**
- * Unit tests for the framework-free meeting CRUD use cases (Task 11.1):
- * {@link CreateMeeting}, {@link GetMeeting}, {@link EditMeeting}, and
- * {@link DeleteMeeting}. They run against the in-memory {@link MeetingRepository}
- * fake with no Spring context.
+ * Unit tests for meeting CRUD operations against the in-memory repository.
  */
 class MeetingUseCasesTest {
 
     private final InMemoryMeetingRepository repository = new InMemoryMeetingRepository();
     private final UrlCodeGenerator urlCodeGenerator = new UrlCodeGenerator();
+    private final MeetingService meetings = new MeetingService(repository, urlCodeGenerator);
 
     @Test
     void createPersistsAMeetingWithGeneratedUrlCodeAndUuidParticipantIds() {
-        CreateMeeting createMeeting = new CreateMeeting(repository, urlCodeGenerator);
-
-        Meeting created = createMeeting.create(
+        Meeting created = meetings.create(
                 List.of(
                         new NewParticipant("Ana", new Coordinate(6.24, -75.58)),
                         new NewParticipant("Bruno", new Coordinate(6.25, -75.56))),
@@ -53,9 +46,7 @@ class MeetingUseCasesTest {
 
     @Test
     void createRejectsFewerThanTwoParticipants() {
-        CreateMeeting createMeeting = new CreateMeeting(repository, urlCodeGenerator);
-
-        assertThatThrownBy(() -> createMeeting.create(
+        assertThatThrownBy(() -> meetings.create(
                 List.of(new NewParticipant("Solo", new Coordinate(6.24, -75.58))),
                 TransportMode.DRIVING))
                 .isInstanceOf(IllegalArgumentException.class);
@@ -63,30 +54,25 @@ class MeetingUseCasesTest {
 
     @Test
     void getReturnsTheStoredMeeting() {
-        CreateMeeting createMeeting = new CreateMeeting(repository, urlCodeGenerator);
-        Meeting created = createMeeting.create(
+        Meeting created = meetings.create(
                 List.of(
                         new NewParticipant("Ana", new Coordinate(6.24, -75.58)),
                         new NewParticipant("Bruno", new Coordinate(6.25, -75.56))),
                 TransportMode.WALKING);
 
-        GetMeeting getMeeting = new GetMeeting(repository);
-
-        assertThat(getMeeting.byUrlCode(created.urlCode())).contains(created);
-        assertThat(getMeeting.byUrlCode("UNKNOWN0")).isEmpty();
+        assertThat(meetings.byUrlCode(created.urlCode())).contains(created);
+        assertThat(meetings.byUrlCode("UNKNOWN0")).isEmpty();
     }
 
     @Test
     void editReplacesParticipantsAndModeUnderTheSameUrlCode() {
-        CreateMeeting createMeeting = new CreateMeeting(repository, urlCodeGenerator);
-        Meeting created = createMeeting.create(
+        Meeting created = meetings.create(
                 List.of(
                         new NewParticipant("Ana", new Coordinate(6.24, -75.58)),
                         new NewParticipant("Bruno", new Coordinate(6.25, -75.56))),
                 TransportMode.DRIVING);
 
-        EditMeeting editMeeting = new EditMeeting(repository);
-        Meeting edited = editMeeting.edit(
+        Meeting edited = meetings.edit(
                 created.urlCode(),
                 List.of(
                         new NewParticipant("Carla", new Coordinate(6.20, -75.60)),
@@ -102,9 +88,7 @@ class MeetingUseCasesTest {
 
     @Test
     void editUnknownMeetingThrows() {
-        EditMeeting editMeeting = new EditMeeting(repository);
-
-        assertThatThrownBy(() -> editMeeting.edit(
+        assertThatThrownBy(() -> meetings.edit(
                 "MISSING0",
                 List.of(
                         new NewParticipant("Ana", new Coordinate(6.24, -75.58)),
@@ -115,28 +99,15 @@ class MeetingUseCasesTest {
 
     @Test
     void deleteRemovesTheMeeting() {
-        CreateMeeting createMeeting = new CreateMeeting(repository, urlCodeGenerator);
-        Meeting created = createMeeting.create(
+        Meeting created = meetings.create(
                 List.of(
                         new NewParticipant("Ana", new Coordinate(6.24, -75.58)),
                         new NewParticipant("Bruno", new Coordinate(6.25, -75.56))),
                 TransportMode.DRIVING);
 
-        DeleteMeeting deleteMeeting = new DeleteMeeting(repository);
-        deleteMeeting.byUrlCode(created.urlCode());
+        meetings.deleteByUrlCode(created.urlCode());
 
         assertThat(repository.findByUrlCode(created.urlCode())).isEmpty();
     }
 
-    @Test
-    void constructorsRejectNullDependencies() {
-        assertThatThrownBy(() -> new CreateMeeting(null, urlCodeGenerator))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new GetMeeting(null))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new EditMeeting(null))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new DeleteMeeting(null))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
 }

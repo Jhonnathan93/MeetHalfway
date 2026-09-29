@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import app.meethalfway.meetings.domain.model.DomainConstants;
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
+import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.shared.domain.Minutes;
 import app.meethalfway.shared.domain.ParticipantId;
 import net.jqwik.api.Arbitraries;
@@ -49,15 +49,15 @@ class FairestFeasibilityPropertyTest {
      */
     @Property(tries = 100)
     void fairestWinnerRespectsEfficiencyFeasibilityBound(
-            @ForAll("candidateLists") List<EvaluatedCandidate> candidates) {
+            @ForAll("candidateLists") List<StrategyResult> candidates) {
         double tStar = candidates.stream()
-                .mapToDouble(EvaluatedCandidate::sumTime)
+                .mapToDouble(StrategyResult::sumTime)
                 .min()
                 .orElseThrow();
 
         double bound = (1.0 + DomainConstants.EFFICIENCY_TOLERANCE) * tStar + EPSILON_MINUTES;
 
-        EvaluatedCandidate winner = selector.select(candidates, CENTROID);
+        StrategyResult winner = selector.select(candidates, CENTROID);
 
         assertThat(winner.sumTime()).isLessThanOrEqualTo(bound);
     }
@@ -65,11 +65,11 @@ class FairestFeasibilityPropertyTest {
     // ---- Generators ----
 
     @Provide
-    Arbitrary<List<EvaluatedCandidate>> candidateLists() {
+    Arbitrary<List<StrategyResult>> candidateLists() {
         return candidate().list().ofMinSize(1).ofMaxSize(30);
     }
 
-    private Arbitrary<EvaluatedCandidate> candidate() {
+    private Arbitrary<StrategyResult> candidate() {
         Arbitrary<Double> latitude = Arbitraries.doubles().between(6.0, 6.5).ofScale(6);
         Arbitrary<Double> longitude = Arbitraries.doubles().between(-75.7, -75.4).ofScale(6);
         Arbitrary<Double> sumTime = Arbitraries.doubles().between(0.0, 1000.0).ofScale(3);
@@ -78,11 +78,11 @@ class FairestFeasibilityPropertyTest {
 
         return Combinators.combine(latitude, longitude, sumTime, maxTime, stdDev)
                 .as((lat, lon, sum, max, sd) -> {
-                    // EvaluatedCandidate calls containsKey(null)/containsValue(null),
+                    // StrategyResult calls containsKey(null)/containsValue(null),
                     // so use a mutable map that supports null-key lookups.
                     Map<ParticipantId, Minutes> perParticipant = new LinkedHashMap<>();
                     perParticipant.put(new ParticipantId("p1"), new Minutes(max));
-                    return new EvaluatedCandidate(
+                    return new StrategyResult(
                             new Coordinate(lat, lon), perParticipant, sum, max, sd);
                 });
     }

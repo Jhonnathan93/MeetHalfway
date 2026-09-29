@@ -13,7 +13,7 @@ class EngineConfigTest {
     }
 
     private static OutlierRule rule() {
-        return new OutlierRule.MedianMultiple(2.0);
+        return new OutlierRule(2.0);
     }
 
     @Test

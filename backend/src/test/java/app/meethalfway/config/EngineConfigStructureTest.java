@@ -20,11 +20,11 @@ import org.springframework.mock.env.MockEnvironment;
  * <ul>
  *   <li>city-specific values are bound from configuration (not hard-coded): a
  *       {@link Binder} binds {@code meethalfway.engine.*} into
- *       {@link EngineConfigProperties} and the composition-root mapping reflects
+ *       {@link MeetHalfwayProperties.Engine} and the composition-root mapping reflects
  *       them in the domain {@link EngineConfig};</li>
  *   <li>the 15% efficiency tolerance is a fixed constant equal to {@code 0.15}
  *       and is <em>not</em> a field/getter on {@link EngineConfig} or
- *       {@link EngineConfigProperties};</li>
+ *       {@link MeetHalfwayProperties.Engine};</li>
  * </ul>
  */
 class EngineConfigStructureTest {
@@ -42,12 +42,12 @@ class EngineConfigStructureTest {
                 .withProperty("meethalfway.engine.outlier-median-multiple-k", "2.0");
 
         Binder binder = new Binder(ConfigurationPropertySources.get(environment));
-        EngineConfigProperties properties = binder
-                .bind("meethalfway.engine", EngineConfigProperties.class)
+        MeetHalfwayProperties properties = binder
+                .bind("meethalfway", MeetHalfwayProperties.class)
                 .get();
 
-        assertThat(properties.serviceBoundsMinLat()).isEqualTo(6.0);
-        assertThat(properties.gridDensityN()).isEqualTo(250);
+        assertThat(properties.engine().serviceBoundsMinLat()).isEqualTo(6.0);
+        assertThat(properties.engine().gridDensityN()).isEqualTo(250);
 
         EngineConfig config = new BeanConfiguration().engineConfig(properties);
         // The domain snapshot reflects the configured (city-specific) values,
@@ -70,9 +70,9 @@ class EngineConfigStructureTest {
     }
 
     @Test
-    void efficiencyToleranceIsNotAFieldOrGetterOnEngineConfigProperties() {
-        assertNoToleranceComponent(EngineConfigProperties.class);
-        assertNoToleranceAccessor(EngineConfigProperties.class);
+    void efficiencyToleranceIsNotAFieldOrGetterOnEngineProperties() {
+        assertNoToleranceComponent(MeetHalfwayProperties.Engine.class);
+        assertNoToleranceAccessor(MeetHalfwayProperties.Engine.class);
     }
 
     private static void assertNoToleranceComponent(Class<?> recordType) {

@@ -9,7 +9,7 @@ import app.meethalfway.meetings.domain.model.MeetingInput;
 import app.meethalfway.shared.domain.ParticipantId;
 import app.meethalfway.meetings.domain.model.ParticipantInput;
 import app.meethalfway.shared.domain.TransportMode;
-import app.meethalfway.meetings.domain.model.MeetingRepository;
+import app.meethalfway.meetings.application.MeetingRepository;
 import app.meethalfway.meetings.adapters.persistence.JpaMeetingRepository;
 import app.meethalfway.meetings.adapters.persistence.MeetingEntity;
 import app.meethalfway.meetings.adapters.persistence.MeetingMapper;

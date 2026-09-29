@@ -7,11 +7,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Minimal inbound web adapter exposing the liveness endpoint on the versioned
- * REST surface under {@code /api/v1} (Requirement 11.1). It owns the
- * {@code /api/v1/health} base path declared in the {@link RouteRegistry}.
+ * REST surface under {@code /api/v1} (Requirement 11.1).
  */
 @RestController
-@RequestMapping(RouteRegistry.HEALTH_BASE_PATH)
+@RequestMapping("/api/v1/health")
 public class HealthController {
 
     @GetMapping

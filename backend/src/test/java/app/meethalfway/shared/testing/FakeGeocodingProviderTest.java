@@ -25,7 +25,7 @@ class FakeGeocodingProviderTest {
                 new ServiceBounds(6.10, 6.40, -75.70, -75.40),
                 25,
                 15000.0,
-                new OutlierRule.MedianMultiple(2.0),
+                new OutlierRule(2.0),
                 0.5);
     }
 

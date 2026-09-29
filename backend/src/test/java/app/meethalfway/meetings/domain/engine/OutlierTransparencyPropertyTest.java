@@ -41,7 +41,7 @@ import net.jqwik.api.Provide;
  *
  * <p><b>Faithfulness.</b> The premise "with &ge; 1 outlier" is defined by the
  * engine itself: outliers are the participants the configured
- * {@link ConfiguredOutlierDetector} flags on the Fastest (including) winner's
+ * {@link OutlierDetector} flags on the Fastest (including) winner's
  * per-participant travel-time vector (task 7.2). Rather than assuming the
  * injected participant is always flagged, this test re-derives the expected
  * outlier set independently from the returned primary results and asserts the
@@ -56,9 +56,9 @@ class OutlierTransparencyPropertyTest {
     /** Fixed service bounds; all generated origins fall inside this box. */
     private static final ServiceBounds BOUNDS = new ServiceBounds(6.00, 6.50, -75.80, -75.30);
 
-    private final ConfiguredOutlierDetector detector = new ConfiguredOutlierDetector();
+    private final OutlierDetector detector = new OutlierDetector();
 
-    private final DefaultRecommendationEngine engine = new DefaultRecommendationEngine(
+    private final RecommendationEngine engine = new RecommendationEngine(
             new MeetingValidator(),
             new GridCandidateGenerator(),
             new MetricCalculator(),
@@ -200,7 +200,7 @@ class OutlierTransparencyPropertyTest {
             }
 
             EngineConfig config = new EngineConfig(
-                    BOUNDS, 25, 15_000.0, new OutlierRule.MedianMultiple(2.0), 0.5);
+                    BOUNDS, 25, 15_000.0, new OutlierRule(2.0), 0.5);
 
             int outlierIndex = outlierPick % count;
             Coordinate outlierOrigin = participants.get(outlierIndex).location();

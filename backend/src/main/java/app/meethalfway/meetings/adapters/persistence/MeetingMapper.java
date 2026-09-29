@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import org.springframework.stereotype.Component;
 
 /**
  * Translates between the framework-free {@link Meeting} aggregate and its JPA
@@ -56,6 +57,7 @@ import java.util.UUID;
  * so the top-level results are persisted as the {@code excludesOutlier=false}
  * rows and reconstructed symmetrically.
  */
+@Component
 public final class MeetingMapper {
 
     private static final String FASTEST = "FASTEST";
@@ -129,13 +131,7 @@ public final class MeetingMapper {
         meeting.recommendation().ifPresent(outcome -> addRecommendationRows(entity, outcome));
     }
 
-    private void addRecommendationRows(MeetingEntity entity, RecommendationOutcome outcome) {
-        // Only a Success is persisted; a RoutingFailure is never stored as a
-        // recommendation (Requirement 6). Silently ignore a RoutingFailure here
-        // because CreateMeeting/ComputeRecommendations never attach one.
-        if (!(outcome instanceof RecommendationOutcome.Success success)) {
-            return;
-        }
+    private void addRecommendationRows(MeetingEntity entity, RecommendationOutcome.Success success) {
         // Including rows (excludesOutlier=false) come from the top-level results,
         // which the engine guarantees equal tradeoff.including() when a trade-off
         // exists.
@@ -194,11 +190,11 @@ public final class MeetingMapper {
         }
         MeetingInput input = new MeetingInput(participants, fromWireMode(entity.getTransportMode()));
 
-        Optional<RecommendationOutcome> recommendation = toRecommendation(entity.getRecommendations());
+        Optional<RecommendationOutcome.Success> recommendation = toRecommendation(entity.getRecommendations());
         return new Meeting(entity.getUrlCode(), input, recommendation);
     }
 
-    private Optional<RecommendationOutcome> toRecommendation(List<RecommendationEntity> rows) {
+    private Optional<RecommendationOutcome.Success> toRecommendation(List<RecommendationEntity> rows) {
         if (rows == null || rows.isEmpty()) {
             return Optional.empty();
         }

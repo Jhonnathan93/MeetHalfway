@@ -2,6 +2,7 @@ package app.meethalfway.meetings.application;
 
 import java.security.SecureRandom;
 import java.util.function.Predicate;
+import org.springframework.stereotype.Component;
 
 /**
  * Generates short, URL-safe meeting access codes (Requirement 9.1). Codes are
@@ -13,6 +14,7 @@ import java.util.function.Predicate;
  * a {@link Predicate} so the generator depends on no persistence type; the
  * composition root wires it to the repository's existence check.
  */
+@Component
 public final class UrlCodeGenerator {
 
     /**

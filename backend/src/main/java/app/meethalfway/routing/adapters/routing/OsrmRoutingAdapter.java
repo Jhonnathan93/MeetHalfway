@@ -11,7 +11,7 @@ import java.util.Locale;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import app.meethalfway.config.RoutingProperties;
+import app.meethalfway.config.MeetHalfwayProperties.Routing;
 import app.meethalfway.shared.domain.Coordinate;
 import app.meethalfway.shared.domain.Minutes;
 import app.meethalfway.shared.domain.TransportMode;
@@ -55,13 +55,13 @@ public class OsrmRoutingAdapter implements RoutingProvider {
 
     /**
      * Production constructor: builds an {@link HttpClient} with the configured
-     * connect timeout from {@link RoutingProperties}.
+     * connect timeout from {@link Routing}.
      *
      * @param properties   the externalized routing configuration (must supply a
      *                     base URL, both profiles, and a positive timeout)
      * @param objectMapper the JSON mapper (Spring-provided) used to parse responses
      */
-    public OsrmRoutingAdapter(RoutingProperties properties, ObjectMapper objectMapper) {
+    public OsrmRoutingAdapter(Routing properties, ObjectMapper objectMapper) {
         this(
                 HttpClient.newBuilder()
                         .connectTimeout(resolveTimeout(properties))
@@ -78,7 +78,7 @@ public class OsrmRoutingAdapter implements RoutingProvider {
      * @param objectMapper the JSON mapper used to parse responses
      * @param properties   the externalized routing configuration
      */
-    OsrmRoutingAdapter(HttpClient httpClient, ObjectMapper objectMapper, RoutingProperties properties) {
+    OsrmRoutingAdapter(HttpClient httpClient, ObjectMapper objectMapper, Routing properties) {
         this.httpClient = requireNonNull(httpClient, "httpClient");
         this.objectMapper = requireNonNull(objectMapper, "objectMapper");
         this.baseUrl = requireBaseUrl(properties);
@@ -206,7 +206,7 @@ public class OsrmRoutingAdapter implements RoutingProvider {
         return String.format(Locale.ROOT, "%.6f", value);
     }
 
-    private static Duration resolveTimeout(RoutingProperties properties) {
+    private static Duration resolveTimeout(Routing properties) {
         Long millis = properties == null ? null : properties.timeoutMillis();
         if (millis == null || millis <= 0) {
             throw new IllegalArgumentException(
@@ -215,7 +215,7 @@ public class OsrmRoutingAdapter implements RoutingProvider {
         return Duration.ofMillis(millis);
     }
 
-    private static String requireBaseUrl(RoutingProperties properties) {
+    private static String requireBaseUrl(Routing properties) {
         if (properties == null || properties.baseUrl() == null || properties.baseUrl().isBlank()) {
             throw new IllegalArgumentException("meethalfway.routing.base-url must be configured");
         }

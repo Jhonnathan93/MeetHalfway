@@ -14,7 +14,7 @@ import app.meethalfway.meetings.domain.model.RoutingError;
 import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.meetings.domain.model.StrategyResults;
 import app.meethalfway.shared.domain.TransportMode;
-import app.meethalfway.meetings.application.CreateMeeting;
+import app.meethalfway.meetings.application.MeetingService;
 import app.meethalfway.meetings.web.dto.MeetingResponse;
 import app.meethalfway.meetings.web.dto.ParticipantRequest;
 import app.meethalfway.meetings.web.dto.RecommendationResponse;
@@ -57,7 +57,7 @@ class WebMapperTest {
 
     @Test
     void sanitizesNamesWhenBuildingNewParticipants() {
-        List<CreateMeeting.NewParticipant> result = mapper.toNewParticipants(List.of(
+        List<MeetingService.NewParticipant> result = mapper.toNewParticipants(List.of(
                 new ParticipantRequest("  <b>Ana</b>  ", 6.24, -75.58),
                 new ParticipantRequest(null, 6.25, -75.56)));
 

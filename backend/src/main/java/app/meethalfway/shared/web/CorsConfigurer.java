@@ -14,7 +14,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * <p>The allowed origins/methods/headers are passed as plain lists via
  * constructor injection, so this web-adapter class never depends on the
  * {@code config} layer directly (the composition root derives the lists from
- * {@code CorsProperties} and supplies them here).
+ * {@code MeetHalfwayProperties.Cors} and supplies them here).
  */
 public final class CorsConfigurer implements WebMvcConfigurer {
 

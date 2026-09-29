@@ -1,12 +1,13 @@
 package app.meethalfway.meetings.adapters.persistence;
 
 import app.meethalfway.meetings.domain.model.Meeting;
-import app.meethalfway.meetings.domain.model.MeetingRepository;
+import app.meethalfway.meetings.application.MeetingRepository;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Repository;
 
 /**
  * JPA/PostgreSQL implementation of the domain {@link MeetingRepository} port
@@ -19,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
  * <p>Access is by {@code urlCode} alone; there is no identity control
  * (Requirement 9.2).
  */
+@Repository
 public class JpaMeetingRepository implements MeetingRepository {
 
     private final SpringDataMeetingRepository repository;

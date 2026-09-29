@@ -29,7 +29,7 @@ import net.jqwik.api.Provide;
  * Feature: meeting-recommendation-engine, Property 10: Determinism
  *
  * <p>For any meeting input, engine configuration, and routing behavior, running
- * {@link DefaultRecommendationEngine#compute} twice with the <em>same</em>
+ * {@link RecommendationEngine#compute} twice with the <em>same</em>
  * input, config, and routing provider produces identical results for all three
  * strategies (identical selected points and metrics). The engine's collaborators
  * — grid candidate generation, metric computation, ε-tolerant tie-breaking with a
@@ -58,12 +58,12 @@ import net.jqwik.api.Provide;
  */
 class DeterminismPropertyTest {
 
-    private final DefaultRecommendationEngine engine =
-            new DefaultRecommendationEngine(
+    private final RecommendationEngine engine =
+            new RecommendationEngine(
                     new MeetingValidator(),
                     new GridCandidateGenerator(),
                     new MetricCalculator(),
-                    new ConfiguredOutlierDetector());
+                    new OutlierDetector());
 
     /**
      * Property 10 &mdash; two computations over the same input, config, and
@@ -222,13 +222,8 @@ class DeterminismPropertyTest {
 
     private static Arbitrary<OutlierRule> outlierRules() {
         Arbitrary<OutlierRule> medianMultiple =
-                Arbitraries.doubles().between(0.1, 10.0).map(OutlierRule.MedianMultiple::new);
-        Arbitrary<OutlierRule> percentile =
-                Arbitraries.doubles()
-                        .between(0.1, 100.0)
-                        .filter(p -> p > 0.0 && p <= 100.0)
-                        .map(OutlierRule.Percentile::new);
-        return Arbitraries.oneOf(medianMultiple, percentile);
+                Arbitraries.doubles().between(0.1, 10.0).map(OutlierRule::new);
+        return medianMultiple;
     }
 
     /** A coherent, always-valid determinism scenario. */

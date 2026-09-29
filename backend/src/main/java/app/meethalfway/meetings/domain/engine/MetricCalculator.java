@@ -1,7 +1,7 @@
 package app.meethalfway.meetings.domain.engine;
 
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
+import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.shared.domain.Minutes;
 import app.meethalfway.shared.domain.ParticipantId;
 
@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * Computes the three optimization metrics for a candidate meeting point from the
  * real per-participant travel times to that point (Requirement 5.2), and packages
- * them into an {@link EvaluatedCandidate}.
+ * them into the domain's {@link StrategyResult} value.
  *
  * <p>Every metric is derived exclusively from measured {@code Travel_Time}s — the
  * engine never selects a point by geographic center (Requirement 5.3). This class
@@ -39,7 +39,7 @@ import java.util.Map;
 public final class MetricCalculator {
 
     /**
-     * Builds an {@link EvaluatedCandidate} for {@code point} from the travel times
+     * Builds a {@link StrategyResult} for {@code point} from the travel times
      * each participant needs to reach it, computing {@code Sum_Time},
      * {@code Max_Time}, and {@code Std_Dev} (Requirement 5.2).
      *
@@ -51,7 +51,7 @@ public final class MetricCalculator {
      * @throws IllegalArgumentException if {@code point} or {@code perParticipant}
      *         is null, the map is empty, or it contains null keys/values
      */
-    public EvaluatedCandidate evaluate(Coordinate point, Map<ParticipantId, Minutes> perParticipant) {
+    public StrategyResult evaluate(Coordinate point, Map<ParticipantId, Minutes> perParticipant) {
         if (point == null) {
             throw new IllegalArgumentException("point must not be null");
         }
@@ -69,7 +69,7 @@ public final class MetricCalculator {
         int maxTime = maxTime(perParticipant);
         double stdDev = populationStdDev(perParticipant);
 
-        return new EvaluatedCandidate(point, perParticipant, sumTime, maxTime, stdDev);
+        return new StrategyResult(point, perParticipant, sumTime, maxTime, stdDev);
     }
 
     /**

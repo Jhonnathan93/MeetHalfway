@@ -6,7 +6,7 @@ import app.meethalfway.shared.domain.Coordinate;
  * The bounded lat/lng box over which {@code Grid_Search} places its candidate
  * points. The region is derived from the participant origins, expanded by the
  * configured maximum search radius, and clipped to the configured service
- * bounds; see {@link CandidateGenerator#searchRegion}.
+ * bounds; see {@link GridCandidateGenerator#searchRegion}.
  *
  * <p>Invariants enforced at construction so an invalid region cannot exist:
  * <ul>

@@ -24,7 +24,7 @@ class GridCandidateGeneratorTest {
     }
 
     private static EngineConfig config(int gridDensityN) {
-        return new EngineConfig(bounds(), gridDensityN, 15000.0, new OutlierRule.MedianMultiple(2.0), 0.5);
+        return new EngineConfig(bounds(), gridDensityN, 15000.0, new OutlierRule(2.0), 0.5);
     }
 
     private static List<Coordinate> origins() {

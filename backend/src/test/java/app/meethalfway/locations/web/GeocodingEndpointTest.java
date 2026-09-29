@@ -39,7 +39,7 @@ class GeocodingEndpointTest {
 
     private final EngineConfig engineConfig = new EngineConfig(
             new ServiceBounds(-90.0, 90.0, -180.0, 180.0),
-            100, 20000.0, new OutlierRule.MedianMultiple(2.0), 0.5);
+            100, 20000.0, new OutlierRule(2.0), 0.5);
 
     private MockMvc mockMvc;
 

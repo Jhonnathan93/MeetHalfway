@@ -6,11 +6,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.function.BiFunction;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
+import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.shared.domain.Minutes;
 import app.meethalfway.shared.domain.ParticipantId;
 import net.jqwik.api.Arbitraries;
@@ -61,7 +62,7 @@ class TieBreakTotalityPropertyTest {
     private final FairestSelector fairest = new FairestSelector(tieBreaker);
 
     /**
-     * Generates a non-empty list of {@link EvaluatedCandidate}s engineered to be
+     * Generates a non-empty list of {@link StrategyResult}s engineered to be
      * heavily tied. Metrics are drawn from small "cluster" pools so many
      * candidates share identical or within-ε {@code Sum_Time}/{@code Max_Time}/
      * {@code Std_Dev}, forcing every metric comparator to fall through to the
@@ -69,7 +70,7 @@ class TieBreakTotalityPropertyTest {
      * (from a distinct integer index) so the final non-ε comparator is decisive.
      */
     @Provide
-    Arbitrary<List<EvaluatedCandidate>> tiedCandidateLists() {
+    Arbitrary<List<StrategyResult>> tiedCandidateLists() {
         // Small clustered pools => frequent exact and within-ε ties on each metric.
         Arbitrary<Double> sumTimes = Arbitraries.of(10.0, 10.2, 10.4, 50.0, 50.3, 100.0);
         Arbitrary<Integer> maxTimes = Arbitraries.of(5, 20, 40);
@@ -92,8 +93,8 @@ class TieBreakTotalityPropertyTest {
      */
     @Property(tries = 100)
     void fastestChainYieldsSingleDeterministicWinner(
-            @ForAll("tiedCandidateLists") List<EvaluatedCandidate> candidates) {
-        assertTotalOrderSelection(fastest, candidates);
+            @ForAll("tiedCandidateLists") List<StrategyResult> candidates) {
+        assertTotalOrderSelection(fastest::select, candidates);
     }
 
     /**
@@ -102,8 +103,8 @@ class TieBreakTotalityPropertyTest {
      */
     @Property(tries = 100)
     void minimaxChainYieldsSingleDeterministicWinner(
-            @ForAll("tiedCandidateLists") List<EvaluatedCandidate> candidates) {
-        assertTotalOrderSelection(minimax, candidates);
+            @ForAll("tiedCandidateLists") List<StrategyResult> candidates) {
+        assertTotalOrderSelection(minimax::select, candidates);
     }
 
     /**
@@ -113,8 +114,8 @@ class TieBreakTotalityPropertyTest {
      */
     @Property(tries = 100)
     void fairestChainYieldsSingleDeterministicWinner(
-            @ForAll("tiedCandidateLists") List<EvaluatedCandidate> candidates) {
-        assertTotalOrderSelection(fairest, candidates);
+            @ForAll("tiedCandidateLists") List<StrategyResult> candidates) {
+        assertTotalOrderSelection(fairest::select, candidates);
     }
 
     /**
@@ -126,10 +127,11 @@ class TieBreakTotalityPropertyTest {
      * input order.
      */
     private void assertTotalOrderSelection(
-            StrategySelector selector, List<EvaluatedCandidate> candidates) {
+            BiFunction<List<StrategyResult>, Coordinate, StrategyResult> selector,
+            List<StrategyResult> candidates) {
         Coordinate centroid = GeographicCentroid.of(pointsOf(candidates));
 
-        EvaluatedCandidate winner = selector.select(candidates, centroid);
+        StrategyResult winner = selector.apply(candidates, centroid);
 
         assertThat(winner).as("selection must return a single non-null winner").isNotNull();
         assertThat(candidates)
@@ -137,15 +139,15 @@ class TieBreakTotalityPropertyTest {
                 .contains(winner);
 
         // Determinism on the same input: a total order never depends on call count.
-        EvaluatedCandidate again = selector.select(candidates, centroid);
+        StrategyResult again = selector.apply(candidates, centroid);
         assertSameSelection(winner, again);
 
         // Determinism under input reordering: a total order never depends on input
         // order. If any tie were unresolved, a shuffle could surface a different
         // "first minimum" and this would fail.
-        List<EvaluatedCandidate> shuffled = new ArrayList<>(candidates);
+        List<StrategyResult> shuffled = new ArrayList<>(candidates);
         Collections.shuffle(shuffled, new Random(candidates.size() * 31L + 7L));
-        EvaluatedCandidate fromShuffled = selector.select(shuffled, centroid);
+        StrategyResult fromShuffled = selector.apply(shuffled, centroid);
         assertSameSelection(winner, fromShuffled);
     }
 
@@ -155,7 +157,7 @@ class TieBreakTotalityPropertyTest {
      * the same candidate was chosen; agreement on metrics guards against any
      * accidental point collision being treated as a pass.
      */
-    private static void assertSameSelection(EvaluatedCandidate expected, EvaluatedCandidate actual) {
+    private static void assertSameSelection(StrategyResult expected, StrategyResult actual) {
         assertThat(actual.point())
                 .as("selected point must be identical across repeated/shuffled selection")
                 .isEqualTo(expected.point());
@@ -176,15 +178,15 @@ class TieBreakTotalityPropertyTest {
      * index is mapped into the valid coordinate range with a spread wide enough
      * that no two candidates share squared distance to the centroid.
      */
-    private static List<EvaluatedCandidate> withDistinctPoints(List<Metrics> metrics) {
-        List<EvaluatedCandidate> candidates = new ArrayList<>(metrics.size());
+    private static List<StrategyResult> withDistinctPoints(List<Metrics> metrics) {
+        List<StrategyResult> candidates = new ArrayList<>(metrics.size());
         for (int i = 0; i < metrics.size(); i++) {
             Metrics m = metrics.get(i);
             Coordinate point = pointForIndex(i);
             Map<ParticipantId, Minutes> perParticipant = new LinkedHashMap<>();
             perParticipant.put(new ParticipantId("p0"), new Minutes(m.maxTime()));
             candidates.add(
-                    new EvaluatedCandidate(point, perParticipant, m.sumTime(), m.maxTime(), m.stdDev()));
+                    new StrategyResult(point, perParticipant, m.sumTime(), m.maxTime(), m.stdDev()));
         }
         return candidates;
     }
@@ -213,9 +215,9 @@ class TieBreakTotalityPropertyTest {
         return new Coordinate(lat, lng);
     }
 
-    private static List<Coordinate> pointsOf(List<EvaluatedCandidate> candidates) {
+    private static List<Coordinate> pointsOf(List<StrategyResult> candidates) {
         List<Coordinate> points = new ArrayList<>(candidates.size());
-        for (EvaluatedCandidate c : candidates) {
+        for (StrategyResult c : candidates) {
             points.add(c.point());
         }
         return points;

@@ -8,7 +8,7 @@ import app.meethalfway.meetings.domain.model.EngineConfig;
 import app.meethalfway.meetings.domain.model.ServiceBounds;
 
 /**
- * Deterministic {@code Grid_Search} implementation of {@link CandidateGenerator}
+ * Deterministic {@code Grid_Search} candidate generator
  * (Requirements 5.1, 5.4).
  *
  * <p><b>Region derivation</b> ({@link #searchRegion}). The region is the
@@ -37,12 +37,11 @@ import app.meethalfway.meetings.domain.model.ServiceBounds;
  * used; identical {@code origins} and {@code config} always yield the identical
  * list in the identical order (a precondition for Property 10).
  */
-public final class GridCandidateGenerator implements CandidateGenerator {
+public final class GridCandidateGenerator {
 
     /** Metres per degree of latitude (spherical approximation). */
     private static final double METERS_PER_DEGREE_LAT = 111_320.0;
 
-    @Override
     public List<Coordinate> generate(List<Coordinate> origins, EngineConfig config) {
         SearchRegion region = searchRegion(origins, config);
         int n = config.gridDensityN();
@@ -75,7 +74,6 @@ public final class GridCandidateGenerator implements CandidateGenerator {
         return List.copyOf(candidates);
     }
 
-    @Override
     public SearchRegion searchRegion(List<Coordinate> origins, EngineConfig config) {
         validate(origins, config);
 

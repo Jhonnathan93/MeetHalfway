@@ -32,7 +32,7 @@ import net.jqwik.api.Provide;
  * lie within those bounds, a {@code gridDensityN >= 1}, a strictly-positive
  * {@code maxSearchRadiusMeters}, and a valid {@link OutlierRule}/epsilon. Rather
  * than re-deriving the region, the test asserts containment against the exact
- * box the generator exposes via {@link CandidateGenerator#searchRegion}.
+ * box the generator exposes via {@link GridCandidateGenerator#searchRegion}.
  */
 class GridGenerationCountAndBoundsPropertyTest {
 
@@ -124,13 +124,8 @@ class GridGenerationCountAndBoundsPropertyTest {
 
     private static Arbitrary<OutlierRule> outlierRules() {
         Arbitrary<OutlierRule> medianMultiple =
-                Arbitraries.doubles().between(0.1, 10.0).map(OutlierRule.MedianMultiple::new);
-        Arbitrary<OutlierRule> percentile =
-                Arbitraries.doubles()
-                        .between(0.1, 100.0)
-                        .filter(p -> p > 0.0 && p <= 100.0)
-                        .map(OutlierRule.Percentile::new);
-        return Arbitraries.oneOf(medianMultiple, percentile);
+                Arbitraries.doubles().between(0.1, 10.0).map(OutlierRule::new);
+        return medianMultiple;
     }
 
     /** A coherent, always-valid generation scenario. */

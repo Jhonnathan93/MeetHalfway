@@ -7,7 +7,7 @@ package app.meethalfway.meetings.domain.model;
  * these values, it never hard-codes them.
  *
  * <p>This is the framework-free domain snapshot. The framework-facing binding
- * ({@code app.meethalfway.config.EngineConfigProperties}) is mapped into this
+ * ({@code app.meethalfway.config.MeetHalfwayProperties.Engine}) is mapped into this
  * record at the composition root, keeping the domain independent of Spring.
  *
  * <p>Note the deliberate omission: the 15% {@code Efficiency_Tolerance} is

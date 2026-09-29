@@ -8,8 +8,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import app.meethalfway.meetings.web.support.NoOpRoutingProvider;
-import app.meethalfway.meetings.web.support.StubRecommendationEngine;
 import app.meethalfway.meetings.web.support.TestMeetingRepository;
 import app.meethalfway.shared.domain.Coordinate;
 import app.meethalfway.meetings.domain.model.EngineConfig;
@@ -20,24 +18,23 @@ import app.meethalfway.meetings.domain.model.OutlierRule;
 import app.meethalfway.shared.domain.ParticipantId;
 import app.meethalfway.meetings.domain.model.ParticipantInput;
 import app.meethalfway.meetings.domain.model.RecommendationOutcome;
-import app.meethalfway.meetings.domain.model.RoutingError;
 import app.meethalfway.meetings.domain.model.ServiceBounds;
-import app.meethalfway.meetings.domain.model.StrategyResult;
-import app.meethalfway.meetings.domain.model.StrategyResults;
 import app.meethalfway.shared.domain.TransportMode;
-import app.meethalfway.meetings.application.ComputeRecommendations;
-import app.meethalfway.meetings.application.CreateMeeting;
-import app.meethalfway.meetings.application.DeleteMeeting;
-import app.meethalfway.meetings.application.EditMeeting;
-import app.meethalfway.meetings.application.GetMeeting;
+import app.meethalfway.meetings.domain.engine.GridCandidateGenerator;
+import app.meethalfway.meetings.domain.engine.MeetingValidator;
+import app.meethalfway.meetings.domain.engine.MetricCalculator;
+import app.meethalfway.meetings.domain.engine.OutlierDetector;
+import app.meethalfway.meetings.domain.engine.RecommendationEngine;
+import app.meethalfway.meetings.application.RecommendationService;
+import app.meethalfway.meetings.application.MeetingService;
 import app.meethalfway.meetings.application.UrlCodeGenerator;
+import app.meethalfway.routing.domain.port.RouteResult;
+import app.meethalfway.routing.domain.port.RoutingProvider;
 import app.meethalfway.meetings.web.MeetingController;
 import app.meethalfway.meetings.web.dto.WebMapper;
 import app.meethalfway.shared.web.GlobalExceptionHandler;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.MockMvc;
@@ -52,31 +49,32 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * (Spring 3.3.5) cannot parse JDK 25 bytecode (class file major version 69) — the
  * same limitation the pom documents for ArchUnit. Additionally the application
  * use cases are {@code final}, which JDK 25's Byte Buddy cannot mock, so they are
- * constructed for real against in-memory fakes ({@link TestMeetingRepository},
- * {@link StubRecommendationEngine}). This exercises the true wiring — routing,
+ * constructed for real against an in-memory repository and deterministic routing.
+ * This exercises the true wiring — routing,
  * status codes, validation, and the actionable 422 body — fully offline.
  */
 class MeetingControllerTest {
 
     private final TestMeetingRepository repository = new TestMeetingRepository();
-    private final StubRecommendationEngine engine = new StubRecommendationEngine();
+    private final RecommendationEngine engine = new RecommendationEngine(
+            new MeetingValidator(), new GridCandidateGenerator(), new MetricCalculator(), new OutlierDetector());
+    private boolean failRouting;
+    private final RoutingProvider routing = (origin, destination, mode) -> failRouting && origin.lat() > 6.245
+            ? RouteResult.failure("location is outside the routing coverage area")
+            : RouteResult.success(new Minutes(origin.lat() > 6.245 ? 12 : 10));
     private final EngineConfig engineConfig = new EngineConfig(
             new ServiceBounds(-90.0, 90.0, -180.0, 180.0),
-            100, 20000.0, new OutlierRule.MedianMultiple(2.0), 0.5);
+            9, 20000.0, new OutlierRule(2.0), 0.5);
 
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        CreateMeeting createMeeting = new CreateMeeting(repository, new UrlCodeGenerator());
-        GetMeeting getMeeting = new GetMeeting(repository);
-        EditMeeting editMeeting = new EditMeeting(repository);
-        DeleteMeeting deleteMeeting = new DeleteMeeting(repository);
-        ComputeRecommendations computeRecommendations = new ComputeRecommendations(
-                engine, repository, new NoOpRoutingProvider(), engineConfig);
+        MeetingService meetingService = new MeetingService(repository, new UrlCodeGenerator());
+        RecommendationService computeRecommendations = new RecommendationService(
+                engine, repository, routing, engineConfig);
         MeetingController controller = new MeetingController(
-                createMeeting, getMeeting, editMeeting, deleteMeeting,
-                computeRecommendations, new WebMapper());
+                meetingService, computeRecommendations, new WebMapper());
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
@@ -89,13 +87,6 @@ class MeetingControllerTest {
         Meeting meeting = Meeting.of(code, new MeetingInput(participants, TransportMode.DRIVING));
         repository.seed(meeting);
         return meeting;
-    }
-
-    private static StrategyResult sampleResult() {
-        Map<ParticipantId, Minutes> perParticipant = new LinkedHashMap<>();
-        perParticipant.put(new ParticipantId("p1"), new Minutes(10));
-        perParticipant.put(new ParticipantId("p2"), new Minutes(12));
-        return new StrategyResult(new Coordinate(6.24, -75.57), perParticipant, 22.0, 12, 1.0);
     }
 
     private static final String VALID_CREATE_BODY = """
@@ -258,13 +249,9 @@ class MeetingControllerTest {
     @Test
     void computeReturns200WithThreeStrategiesOnSuccess() throws Exception {
         seedMeeting("ABC12345");
-        StrategyResult result = sampleResult();
-        engine.willReturn(RecommendationOutcome.Success.of(
-                new StrategyResults(result, result, result)));
-
         mockMvc.perform(post("/api/v1/meetings/ABC12345/recommendations"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.results.fastest.point.lat").value(6.24))
+                .andExpect(jsonPath("$.results.fastest.point.lat").isNumber())
                 .andExpect(jsonPath("$.results.minimax.maxTime").value(12))
                 .andExpect(jsonPath("$.results.fairest.perParticipant.p1").value(10))
                 .andExpect(jsonPath("$.outlierTradeoff").doesNotExist());
@@ -273,10 +260,7 @@ class MeetingControllerTest {
     @Test
     void computeReturns422WithActionableMessageOnRoutingFailure() throws Exception {
         seedMeeting("ABC12345");
-        List<RoutingError> errors = new ArrayList<>();
-        errors.add(new RoutingError(new ParticipantId("p2"), new Coordinate(6.25, -75.56),
-                "location is outside the routing coverage area"));
-        engine.willReturn(new RecommendationOutcome.RoutingFailure(errors));
+        failRouting = true;
 
         mockMvc.perform(post("/api/v1/meetings/ABC12345/recommendations"))
                 .andExpect(status().isUnprocessableEntity())

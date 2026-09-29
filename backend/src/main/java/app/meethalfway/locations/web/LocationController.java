@@ -6,12 +6,12 @@ import app.meethalfway.locations.domain.port.GeocodeResult;
 import app.meethalfway.locations.domain.port.GeocodingProvider;
 import app.meethalfway.locations.web.dto.AddressSuggestionResponse;
 import app.meethalfway.locations.web.dto.LocationMapper;
-import app.meethalfway.shared.web.RouteRegistry;
 import app.meethalfway.shared.web.dto.ErrorResponse;
 import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -29,13 +29,11 @@ import org.springframework.web.bind.annotation.RestController;
  * the request, delegates to the port, and maps the result through the mapper
  * (thin controller, R4.1).
  *
- * <p>The endpoints are anchored on the module's owned base path via
- * {@link RouteRegistry#LOCATIONS_BASE_PATH}, so the registry and the annotations
- * share one source of truth for the base path (Requirement 3.2). The external
- * paths {@code GET /api/v1/geocode/autocomplete} and
+ * <p>The external paths {@code GET /api/v1/geocode/autocomplete} and
  * {@code GET /api/v1/geocode/resolve} are preserved exactly (Behavior_Preservation).
  */
 @RestController
+@RequestMapping("/api/v1/geocode")
 public class LocationController {
 
     private final GeocodingProvider geocodingProvider;
@@ -74,7 +72,7 @@ public class LocationController {
      * @param query the partial address text (query parameter {@code q})
      * @return 200 with the list of suggestions
      */
-    @GetMapping(RouteRegistry.LOCATIONS_BASE_PATH + "/autocomplete")
+    @GetMapping("/autocomplete")
     public ResponseEntity<List<AddressSuggestionResponse>> autocomplete(
             @RequestParam("q") String query) {
         List<AddressSuggestion> suggestions = geocodingProvider.autocomplete(query, engineConfig);
@@ -93,7 +91,7 @@ public class LocationController {
      *              parameter {@code q})
      * @return 200 with the resolved coordinate, or 422 with the reason it failed
      */
-    @GetMapping(RouteRegistry.LOCATIONS_BASE_PATH + "/resolve")
+    @GetMapping("/resolve")
     public ResponseEntity<?> resolve(@RequestParam("q") String query) {
         GeocodeResult result = geocodingProvider.resolve(query);
         if (result instanceof GeocodeResult.Resolved resolved) {

@@ -3,19 +3,20 @@ package app.meethalfway.shared.web;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.meethalfway.meetings.web.support.NoOpRoutingProvider;
-import app.meethalfway.meetings.web.support.StubRecommendationEngine;
 import app.meethalfway.meetings.web.support.TestMeetingRepository;
+import app.meethalfway.meetings.domain.engine.GridCandidateGenerator;
+import app.meethalfway.meetings.domain.engine.MeetingValidator;
+import app.meethalfway.meetings.domain.engine.MetricCalculator;
+import app.meethalfway.meetings.domain.engine.OutlierDetector;
+import app.meethalfway.meetings.domain.engine.RecommendationEngine;
 import app.meethalfway.meetings.domain.model.EngineConfig;
 import app.meethalfway.meetings.domain.model.OutlierRule;
 import app.meethalfway.meetings.domain.model.ServiceBounds;
 import app.meethalfway.shared.testing.FakeGeocodingProvider;
 import app.meethalfway.locations.web.LocationController;
 import app.meethalfway.locations.web.dto.LocationMapper;
-import app.meethalfway.meetings.application.ComputeRecommendations;
-import app.meethalfway.meetings.application.CreateMeeting;
-import app.meethalfway.meetings.application.DeleteMeeting;
-import app.meethalfway.meetings.application.EditMeeting;
-import app.meethalfway.meetings.application.GetMeeting;
+import app.meethalfway.meetings.application.RecommendationService;
+import app.meethalfway.meetings.application.MeetingService;
 import app.meethalfway.meetings.application.UrlCodeGenerator;
 import app.meethalfway.meetings.web.MeetingController;
 import app.meethalfway.meetings.web.dto.WebMapper;
@@ -33,7 +34,7 @@ import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
 /**
- * Route_Registry exposure integration test (Task 2.3; Requirements 3.6, 13.4,
+ * API exposure integration test (Requirements 13.4,
  * 6.6).
  *
  * <p>Verifies two things by inspecting Spring MVC's own
@@ -42,10 +43,6 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * live requests:
  *
  * <ol>
- *   <li>Every base path declared in {@link RouteRegistry} is actually exposed
- *       (some concrete path under that base is wired to a controller handler
- *       method), so the readable API-surface list can never silently drift from
- *       the wired routes (Requirement 3.6).</li>
  *   <li>Every existing external path + HTTP method is preserved: meetings CRUD,
  *       recommendations, geocode autocomplete/resolve, and health (Requirement
  *       6.6, 13.4).</li>
@@ -63,7 +60,7 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
  * {@link MeetingController} in task 4.1). It checks path + method presence, so it
  * stays green regardless of which controller class owns a given geocoding path.
  */
-class RouteRegistryExposureTest {
+class ApiExposureTest {
 
     private RequestMappingHandlerMapping handlerMapping;
 
@@ -76,16 +73,15 @@ class RouteRegistryExposureTest {
     void setUp() {
         EngineConfig engineConfig = new EngineConfig(
                 new ServiceBounds(-90.0, 90.0, -180.0, 180.0),
-                100, 20000.0, new OutlierRule.MedianMultiple(2.0), 0.5);
+                100, 20000.0, new OutlierRule(2.0), 0.5);
 
         TestMeetingRepository repository = new TestMeetingRepository();
         MeetingController meetingController = new MeetingController(
-                new CreateMeeting(repository, new UrlCodeGenerator()),
-                new GetMeeting(repository),
-                new EditMeeting(repository),
-                new DeleteMeeting(repository),
-                new ComputeRecommendations(
-                        new StubRecommendationEngine(), repository, new NoOpRoutingProvider(), engineConfig),
+                new MeetingService(repository, new UrlCodeGenerator()),
+                new RecommendationService(
+                        new RecommendationEngine(new MeetingValidator(), new GridCandidateGenerator(),
+                                new MetricCalculator(), new OutlierDetector()),
+                        repository, new NoOpRoutingProvider(), engineConfig),
                 new WebMapper());
         LocationController locationController = new LocationController(
                 FakeGeocodingProvider.builder().build(),
@@ -132,24 +128,6 @@ class RouteRegistryExposureTest {
     }
 
     @Test
-    void everyRegistryBasePathIsExposedByAWiredController() {
-        Set<String> wiredPatterns =
-                wiredRoutes().stream().map(Route::pattern).collect(Collectors.toSet());
-
-        for (RouteRegistry module : RouteRegistry.all()) {
-            String basePath = module.basePath();
-            boolean exposed = wiredPatterns.stream()
-                    .anyMatch(pattern -> pattern.equals(basePath) || pattern.startsWith(basePath + "/"));
-            assertThat(exposed)
-                    .as(
-                            "RouteRegistry module %s declares base path %s but no wired handler "
-                                    + "method exposes a path under it. Wired patterns: %s",
-                            module.name(), basePath, wiredPatterns)
-                    .isTrue();
-        }
-    }
-
-    @Test
     void existingExternalPathsAndMethodsArePreserved() {
         Set<Route> wired = wiredRoutes();
 
@@ -173,11 +151,4 @@ class RouteRegistryExposureTest {
                 .containsAll(expected);
     }
 
-    @Test
-    void healthPathMatchesTheRegistryDeclaration() {
-        Set<Route> wired = wiredRoutes();
-        assertThat(wired)
-                .as("health endpoint must be exposed exactly at the RouteRegistry HEALTH base path")
-                .contains(new Route(RequestMethod.GET, RouteRegistry.HEALTH.basePath()));
-    }
 }

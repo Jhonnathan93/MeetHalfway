@@ -26,7 +26,7 @@ import net.jqwik.api.Provide;
 
 /**
  * Property-based test for routing-failure transparency in
- * {@link DefaultRecommendationEngine}.
+ * {@link RecommendationEngine}.
  *
  * <p>Feature: meeting-recommendation-engine, Property 13: Routing-failure transparency
  *
@@ -65,18 +65,18 @@ class RoutingFailureTransparencyPropertyTest {
     /** Distinct-coordinate lattice: enough cells for the max 10 participants. */
     private static final int GRID_STEPS = 12;
 
-    private final DefaultRecommendationEngine engine = new DefaultRecommendationEngine(
+    private final RecommendationEngine engine = new RecommendationEngine(
             new MeetingValidator(),
             new GridCandidateGenerator(),
             new MetricCalculator(),
-            new ConfiguredOutlierDetector());
+            new OutlierDetector());
 
     private static EngineConfig config() {
         return new EngineConfig(
                 SERVICE_BOUNDS,
                 25,
                 15_000.0,
-                new OutlierRule.MedianMultiple(2.0),
+                new OutlierRule(2.0),
                 0.5);
     }
 

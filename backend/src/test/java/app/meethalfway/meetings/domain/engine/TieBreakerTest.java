@@ -1,127 +1,102 @@
 package app.meethalfway.meetings.domain.engine;
 
-import java.util.List;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.junit.jupiter.api.Test;
 
+import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
 import app.meethalfway.shared.domain.Minutes;
 import app.meethalfway.shared.domain.ParticipantId;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 
-/**
- * Example-based unit tests for {@link TieBreaker} and {@link GeographicCentroid}.
- * Property 9 (tie-break totality across randomized candidates) is covered by a
- * separate property test (task 5.9); these tests pin down the ε-tolerant
- * comparison, comparator fall-through, and the non-ε centroid total order.
- */
 class TieBreakerTest {
 
     private final TieBreaker tieBreaker = new TieBreaker(0.5);
 
-    private static EvaluatedCandidate candidate(
-            Coordinate point, double sumTime, int maxTime, double stdDev) {
-        // perParticipant is not exercised by the comparators; a single valid entry
-        // satisfies EvaluatedCandidate's invariant. A mutable map is used because
-        // EvaluatedCandidate's constructor calls containsKey(null), which throws on
-        // the immutable maps returned by Map.of.
-        Map<ParticipantId, Minutes> perParticipant = new java.util.LinkedHashMap<>();
+    private static StrategyResult candidate(Coordinate point, double sumTime, int maxTime, double stdDev) {
+        Map<ParticipantId, Minutes> perParticipant = new LinkedHashMap<>();
         perParticipant.put(new ParticipantId("p1"), new Minutes(maxTime));
-        return new EvaluatedCandidate(point, perParticipant, sumTime, maxTime, stdDev);
+        return new StrategyResult(point, perParticipant, sumTime, maxTime, stdDev);
     }
 
     @Test
-    void areEqualUsesStrictlyLessThanEpsilon() {
+    void epsilonBoundaryIsStrict() {
         assertThat(tieBreaker.areEqual(10.0, 10.4)).isTrue();
-        assertThat(tieBreaker.areEqual(10.0, 10.5)).isFalse(); // exactly ε is not "equal"
-        assertThat(tieBreaker.areEqual(10.0, 10.6)).isFalse();
+        assertThat(tieBreaker.areEqual(10.0, 10.5)).isFalse();
         assertThat(tieBreaker.areEqual(10.0, 9.7)).isTrue();
     }
 
     @Test
-    void metricComparatorTreatsWithinEpsilonAsTied() {
-        Coordinate p = new Coordinate(6.2, -75.6);
-        EvaluatedCandidate a = candidate(p, 10.0, 5, 1.0);
-        EvaluatedCandidate b = candidate(p, 10.4, 5, 1.0); // within ε on Σ
-        assertThat(tieBreaker.bySumTime().compare(a, b)).isZero();
-    }
-
-    @Test
-    void metricComparatorOrdersByLowerValueBeyondEpsilon() {
-        Coordinate p = new Coordinate(6.2, -75.6);
-        EvaluatedCandidate low = candidate(p, 10.0, 5, 1.0);
-        EvaluatedCandidate high = candidate(p, 20.0, 5, 1.0);
-        assertThat(tieBreaker.bySumTime().compare(low, high)).isNegative();
-        assertThat(tieBreaker.bySumTime().compare(high, low)).isPositive();
-    }
-
-    @Test
-    void chainFallsThroughToNextComparatorWhenPrimaryIsTiedWithinEpsilon() {
+    void epsilonTieFallsThroughToTheNextMetric() {
         Coordinate centroid = new Coordinate(6.25, -75.55);
-        // Σ within ε (tied), so max_time decides: 'lowerMax' wins.
-        EvaluatedCandidate lowerMax = candidate(new Coordinate(6.2, -75.6), 10.0, 4, 2.0);
-        EvaluatedCandidate higherMax = candidate(new Coordinate(6.3, -75.5), 10.3, 9, 2.0);
+        StrategyResult lowerMax = candidate(new Coordinate(6.2, -75.6), 10.0, 4, 2.0);
+        StrategyResult higherMax = candidate(new Coordinate(6.3, -75.5), 10.3, 9, 2.0);
 
-        var order = tieBreaker.totalOrder(
-                centroid, List.of(tieBreaker.bySumTime(), tieBreaker.byMaxTime(), tieBreaker.byStdDev()));
+        StrategyResult winner = tieBreaker.selectWinner(
+                List.of(higherMax, lowerMax), centroid,
+                List.of(StrategyResult::sumTime, StrategyResult::maxTime, StrategyResult::stdDev));
 
-        assertThat(tieBreaker.selectWinner(List.of(higherMax, lowerMax), order)).isEqualTo(lowerMax);
+        assertThat(winner).isEqualTo(lowerMax);
     }
 
     @Test
-    void centroidDistanceBreaksResidualTieWithoutEpsilon() {
+    void valueOutsideEpsilonWinsBeforeSecondaryMetrics() {
         Coordinate centroid = new Coordinate(6.25, -75.55);
-        // Every metric identical; only distance-to-centroid differs. The distances
-        // differ by far less than ε minutes would allow, but the centroid comparator
-        // ignores ε, so the nearer candidate strictly wins.
-        EvaluatedCandidate near = candidate(new Coordinate(6.25, -75.551), 10.0, 5, 1.0);
-        EvaluatedCandidate far = candidate(new Coordinate(6.40, -75.40), 10.0, 5, 1.0);
+        StrategyResult lowerSum = candidate(new Coordinate(6.2, -75.6), 10.0, 20, 10.0);
+        StrategyResult betterSecondary = candidate(new Coordinate(6.3, -75.5), 10.6, 1, 0.0);
 
-        var order = tieBreaker.totalOrder(
-                centroid, List.of(tieBreaker.bySumTime(), tieBreaker.byMaxTime(), tieBreaker.byStdDev()));
+        StrategyResult winner = tieBreaker.selectWinner(
+                List.of(betterSecondary, lowerSum), centroid,
+                List.of(StrategyResult::sumTime, StrategyResult::maxTime, StrategyResult::stdDev));
 
-        assertThat(tieBreaker.selectWinner(List.of(far, near), order)).isEqualTo(near);
+        assertThat(winner).isEqualTo(lowerSum);
     }
 
     @Test
-    void selectWinnerYieldsSingleDeterministicWinner() {
+    void epsilonSelectionIsIndependentOfCandidateOrder() {
+        StrategyResult boundary = candidate(new Coordinate(0.0, 0.0), 0.0, 0, 0.5);
+        StrategyResult farther = candidate(new Coordinate(0.0, 1.0), 0.0, 1, 0.0);
+        StrategyResult nearer = candidate(new Coordinate(0.0, 0.0), 0.0, 1, 0.01);
+        Coordinate centroid = GeographicCentroid.of(List.of(boundary.point(), farther.point(), nearer.point()));
+        List<StrategyResult> priorities = List.of(boundary, farther, nearer);
+        List<java.util.function.ToDoubleFunction<StrategyResult>> metrics =
+                List.of(StrategyResult::stdDev, StrategyResult::sumTime, StrategyResult::maxTime);
+
+        assertThat(tieBreaker.selectWinner(priorities, centroid, metrics)).isEqualTo(nearer);
+        assertThat(tieBreaker.selectWinner(List.of(nearer, farther, boundary), centroid, metrics))
+                .isEqualTo(nearer);
+    }
+
+    @Test
+    void centroidDistanceAndCoordinatesResolveRemainingTies() {
         Coordinate centroid = new Coordinate(6.25, -75.55);
-        EvaluatedCandidate a = candidate(new Coordinate(6.20, -75.60), 12.0, 6, 2.0);
-        EvaluatedCandidate b = candidate(new Coordinate(6.25, -75.55), 10.0, 5, 1.0);
-        EvaluatedCandidate c = candidate(new Coordinate(6.30, -75.50), 15.0, 7, 3.0);
+        StrategyResult near = candidate(new Coordinate(6.25, -75.551), 10.0, 5, 1.0);
+        StrategyResult far = candidate(new Coordinate(6.40, -75.40), 10.0, 5, 1.0);
 
-        var order = tieBreaker.totalOrder(
-                centroid, List.of(tieBreaker.bySumTime(), tieBreaker.byMaxTime(), tieBreaker.byStdDev()));
+        StrategyResult winner = tieBreaker.selectWinner(
+                List.of(far, near), centroid,
+                List.of(StrategyResult::sumTime, StrategyResult::maxTime, StrategyResult::stdDev));
 
-        // b has the lowest Σ, so it wins Fastest-style ordering, and the result is
-        // stable regardless of input order.
-        assertThat(tieBreaker.selectWinner(List.of(a, b, c), order)).isEqualTo(b);
-        assertThat(tieBreaker.selectWinner(List.of(c, b, a), order)).isEqualTo(b);
+        assertThat(winner).isEqualTo(near);
     }
 
     @Test
-    void constructorRejectsNonPositiveEpsilon() {
+    void constructorRejectsInvalidEpsilon() {
         assertThatThrownBy(() -> new TieBreaker(0.0)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new TieBreaker(-1.0)).isInstanceOf(IllegalArgumentException.class);
         assertThatThrownBy(() -> new TieBreaker(Double.NaN)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
-    void geographicCentroidIsArithmeticMean() {
+    void geographicCentroidIsArithmeticMeanAndRejectsEmptyInput() {
         Coordinate centroid = GeographicCentroid.of(
                 List.of(new Coordinate(0.0, 0.0), new Coordinate(2.0, 4.0), new Coordinate(4.0, 8.0)));
         assertThat(centroid.lat()).isEqualTo(2.0);
         assertThat(centroid.lng()).isEqualTo(4.0);
-    }
-
-    @Test
-    void geographicCentroidRejectsEmptyOrNull() {
-        assertThatThrownBy(() -> GeographicCentroid.of(List.of()))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> GeographicCentroid.of(null))
-                .isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> GeographicCentroid.of(List.of())).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> GeographicCentroid.of(null)).isInstanceOf(IllegalArgumentException.class);
     }
 }

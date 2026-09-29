@@ -25,27 +25,24 @@ import net.jqwik.api.Provide;
  * the configured rule
  *
  * <p>For any vector of per-participant travel times, the set of participants
- * flagged by {@link ConfiguredOutlierDetector} exactly equals the configured
+ * flagged by {@link OutlierDetector} exactly equals the configured
  * {@link OutlierRule} applied to that vector, using the strict boundary
  * {@code t_i > threshold} (a participant exactly on the threshold is not an
  * outlier).
  *
  * <p>Validates: Requirements 7.1.
  *
- * <p>The expected outlier set is computed independently in this test by
- * reproducing the exact median (average-of-two-middle) and percentile
- * (R-7 / Excel {@code PERCENTILE.INC} linear interpolation) formulas the
- * detector's contract specifies, so the property is not merely a re-run of the
- * production code.
+ * <p>The expected outlier set is computed independently in this test using the
+ * median-multiple rule, so the property is not merely a re-run of production.
  */
 class OutlierDetectionPropertyTest {
 
-    private final ConfiguredOutlierDetector detector = new ConfiguredOutlierDetector();
+    private final OutlierDetector detector = new OutlierDetector();
 
     /**
      * For any travel-time map (1-10 participants, non-negative whole minutes) and
-     * any supported outlier rule, {@code detect(...)} returns exactly the set of
-     * participants whose value strictly exceeds the independently-computed
+     * a positive median multiplier, {@code detect(...)} returns exactly the set
+     * of participants whose value strictly exceeds the independently-computed
      * threshold.
      */
     @Property(tries = 100)
@@ -68,10 +65,7 @@ class OutlierDetectionPropertyTest {
                 .mapToDouble(Minutes::value)
                 .sorted()
                 .toArray();
-        double threshold = switch (rule) {
-            case OutlierRule.MedianMultiple mm -> mm.k() * median(sorted);
-            case OutlierRule.Percentile pct -> percentile(sorted, pct.p());
-        };
+        double threshold = rule.k() * median(sorted);
         return travelTimes.entrySet().stream()
                 .filter(e -> e.getValue().value() > threshold)
                 .map(Map.Entry::getKey)
@@ -87,17 +81,6 @@ class OutlierDetectionPropertyTest {
         return (sorted[mid - 1] + sorted[mid]) / 2.0;
     }
 
-    private static double percentile(double[] sorted, double p) {
-        int n = sorted.length;
-        double rank = (p / 100.0) * (n - 1);
-        int lo = (int) Math.floor(rank);
-        int hi = (int) Math.ceil(rank);
-        if (lo == hi) {
-            return sorted[lo];
-        }
-        return sorted[lo] + (rank - lo) * (sorted[hi] - sorted[lo]);
-    }
-
     // ---- Generators ----
 
     @Provide
@@ -108,19 +91,11 @@ class OutlierDetectionPropertyTest {
                 .ofMinSize(1)
                 .ofMaxSize(10);
 
-        Arbitrary<OutlierRule> medianRules = Arbitraries.doubles()
+        Arbitrary<OutlierRule> rules = Arbitraries.doubles()
                 .between(0.5, 5.0)
                 .ofScale(2)
                 .filter(k -> k > 0.0)
-                .map(OutlierRule.MedianMultiple::new);
-
-        // p in (0, 100]; scale 2 keeps generated values representable (min 0.01).
-        Arbitrary<OutlierRule> percentileRules = Arbitraries.doubles()
-                .between(0.01, 100.0)
-                .ofScale(2)
-                .map(OutlierRule.Percentile::new);
-
-        Arbitrary<OutlierRule> rules = Arbitraries.oneOf(medianRules, percentileRules);
+                .map(OutlierRule::new);
 
         return Combinators.combine(times, rules).as(Scenario::of);
     }

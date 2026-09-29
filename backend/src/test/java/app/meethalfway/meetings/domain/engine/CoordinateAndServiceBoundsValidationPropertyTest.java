@@ -57,7 +57,7 @@ class CoordinateAndServiceBoundsValidationPropertyTest {
     private static final MeetingValidator VALIDATOR = new MeetingValidator();
 
     private static EngineConfig configWithBounds(ServiceBounds bounds) {
-        return new EngineConfig(bounds, 25, 5_000.0, new OutlierRule.MedianMultiple(2.0), 0.5);
+        return new EngineConfig(bounds, 25, 5_000.0, new OutlierRule(2.0), 0.5);
     }
 
     private static ParticipantInput participant(int index, Coordinate location) {

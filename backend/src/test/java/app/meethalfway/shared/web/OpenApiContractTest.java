@@ -5,11 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import app.meethalfway.locations.web.LocationController;
 import app.meethalfway.locations.web.dto.AddressSuggestionResponse;
 import app.meethalfway.locations.web.dto.LocationMapper;
-import app.meethalfway.meetings.application.ComputeRecommendations;
-import app.meethalfway.meetings.application.CreateMeeting;
-import app.meethalfway.meetings.application.DeleteMeeting;
-import app.meethalfway.meetings.application.EditMeeting;
-import app.meethalfway.meetings.application.GetMeeting;
+import app.meethalfway.meetings.application.RecommendationService;
+import app.meethalfway.meetings.application.MeetingService;
 import app.meethalfway.meetings.application.UrlCodeGenerator;
 import app.meethalfway.meetings.domain.model.EngineConfig;
 import app.meethalfway.meetings.domain.model.OutlierRule;
@@ -29,8 +26,12 @@ import app.meethalfway.meetings.web.dto.StrategyResultResponse;
 import app.meethalfway.meetings.web.dto.StrategyResultsResponse;
 import app.meethalfway.meetings.web.dto.WebMapper;
 import app.meethalfway.meetings.web.support.NoOpRoutingProvider;
-import app.meethalfway.meetings.web.support.StubRecommendationEngine;
 import app.meethalfway.meetings.web.support.TestMeetingRepository;
+import app.meethalfway.meetings.domain.engine.GridCandidateGenerator;
+import app.meethalfway.meetings.domain.engine.MeetingValidator;
+import app.meethalfway.meetings.domain.engine.MetricCalculator;
+import app.meethalfway.meetings.domain.engine.OutlierDetector;
+import app.meethalfway.meetings.domain.engine.RecommendationEngine;
 import app.meethalfway.shared.testing.FakeGeocodingProvider;
 import app.meethalfway.shared.web.dto.CoordinateResponse;
 import io.swagger.v3.core.converter.ModelConverters;
@@ -96,16 +97,15 @@ class OpenApiContractTest {
     void setUp() {
         EngineConfig engineConfig = new EngineConfig(
                 new ServiceBounds(-90.0, 90.0, -180.0, 180.0),
-                100, 20000.0, new OutlierRule.MedianMultiple(2.0), 0.5);
+                100, 20000.0, new OutlierRule(2.0), 0.5);
 
         TestMeetingRepository repository = new TestMeetingRepository();
         MeetingController meetingController = new MeetingController(
-                new CreateMeeting(repository, new UrlCodeGenerator()),
-                new GetMeeting(repository),
-                new EditMeeting(repository),
-                new DeleteMeeting(repository),
-                new ComputeRecommendations(
-                        new StubRecommendationEngine(), repository, new NoOpRoutingProvider(), engineConfig),
+                new MeetingService(repository, new UrlCodeGenerator()),
+                new RecommendationService(
+                        new RecommendationEngine(new MeetingValidator(), new GridCandidateGenerator(),
+                                new MetricCalculator(), new OutlierDetector()),
+                        repository, new NoOpRoutingProvider(), engineConfig),
                 new WebMapper());
         LocationController locationController = new LocationController(
                 FakeGeocodingProvider.builder().build(),
@@ -174,22 +174,6 @@ class OpenApiContractTest {
         // routes, and are excluded from this application-surface assertion.
         assertThat(wired.stream().map(Route::pattern))
                 .allSatisfy(pattern -> assertThat(pattern).startsWith("/api/v1"));
-    }
-
-    @Test
-    void everyRegistryBasePathIsDocumented() {
-        Set<String> wiredPatterns =
-                wiredRoutes().stream().map(Route::pattern).collect(Collectors.toSet());
-
-        for (RouteRegistry module : RouteRegistry.all()) {
-            String basePath = module.basePath();
-            boolean documented = wiredPatterns.stream()
-                    .anyMatch(p -> p.equals(basePath) || p.startsWith(basePath + "/"));
-            assertThat(documented)
-                    .as("RouteRegistry module %s (base path %s) must be documented; wired: %s",
-                            module.name(), basePath, wiredPatterns)
-                    .isTrue();
-        }
     }
 
     // ---------------------------------------------------------------------

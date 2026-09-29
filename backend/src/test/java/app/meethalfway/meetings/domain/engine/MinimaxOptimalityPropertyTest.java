@@ -3,7 +3,7 @@ package app.meethalfway.meetings.domain.engine;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
+import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.shared.domain.Minutes;
 import app.meethalfway.shared.domain.ParticipantId;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ import net.jqwik.api.Provide;
  * the selected Minimax result's {@code Max_Time} beyond the ε tolerance. That is,
  * for every candidate {@code c}, {@code c.maxTime() >= winner.maxTime() - ε}.
  *
- * <p>{@code Max_Time} is a whole-minute {@code int} on {@link EvaluatedCandidate}
+ * <p>{@code Max_Time} is a whole-minute {@code int} on {@link StrategyResult}
  * while ε is a real number of minutes, so the comparison is performed in
  * {@code double} space. The tie-breaker's ε (see {@link TieBreaker}) means the
  * selector may prefer a candidate whose {@code Max_Time} is within ε of the true
@@ -47,7 +47,7 @@ class MinimaxOptimalityPropertyTest {
      *
      * <p>Each candidate gets a distinct coordinate (so the centroid tiebreak can
      * always resolve a total order) and a single-participant travel-time map built
-     * with a mutable {@link LinkedHashMap} (the {@link EvaluatedCandidate}
+     * with a mutable {@link LinkedHashMap} (the {@link StrategyResult}
      * constructor probes the map with {@code containsKey(null)}, which an
      * immutable {@code Map.of} would reject). {@code sumTime}, {@code maxTime}, and
      * {@code stdDev} are generated independently across their valid ranges so the
@@ -55,12 +55,12 @@ class MinimaxOptimalityPropertyTest {
      * only internally consistent ones.
      */
     @Provide
-    Arbitrary<List<EvaluatedCandidate>> candidateLists() {
+    Arbitrary<List<StrategyResult>> candidateLists() {
         Arbitrary<Integer> sizes = Arbitraries.integers().between(1, 40);
         return sizes.flatMap(size -> candidate().list().ofSize(size));
     }
 
-    private Arbitrary<EvaluatedCandidate> candidate() {
+    private Arbitrary<StrategyResult> candidate() {
         Arbitrary<Double> lat = Arbitraries.doubles().between(-89.0, 89.0);
         Arbitrary<Double> lng = Arbitraries.doubles().between(-179.0, 179.0);
         Arbitrary<Double> sumTime = Arbitraries.doubles().between(0.0, 6000.0);
@@ -70,7 +70,7 @@ class MinimaxOptimalityPropertyTest {
                 .as((la, ln, sum, max, sd) -> {
                     Map<ParticipantId, Minutes> perParticipant = new LinkedHashMap<>();
                     perParticipant.put(new ParticipantId("p0"), new Minutes(max));
-                    return new EvaluatedCandidate(new Coordinate(la, ln), perParticipant, sum, max, sd);
+                    return new StrategyResult(new Coordinate(la, ln), perParticipant, sum, max, sd);
                 });
     }
 
@@ -81,18 +81,18 @@ class MinimaxOptimalityPropertyTest {
      */
     @Property(tries = 100)
     void noCandidateHasStrictlyLowerMaxTimeBeyondEpsilon(
-            @ForAll("candidateLists") List<EvaluatedCandidate> candidates) {
+            @ForAll("candidateLists") List<StrategyResult> candidates) {
 
         List<Coordinate> points = new ArrayList<>();
-        for (EvaluatedCandidate candidate : candidates) {
+        for (StrategyResult candidate : candidates) {
             points.add(candidate.point());
         }
         Coordinate centroid = GeographicCentroid.of(points);
 
-        EvaluatedCandidate winner = selector.select(candidates, centroid);
+        StrategyResult winner = selector.select(candidates, centroid);
 
         assertThat(candidates).contains(winner);
-        for (EvaluatedCandidate candidate : candidates) {
+        for (StrategyResult candidate : candidates) {
             assertThat((double) candidate.maxTime())
                     .as(
                             "candidate maxTime %d must not be strictly lower than winner maxTime %d beyond epsilon %s",

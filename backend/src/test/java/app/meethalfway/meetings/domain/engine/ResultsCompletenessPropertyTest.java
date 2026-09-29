@@ -58,11 +58,11 @@ class ResultsCompletenessPropertyTest {
     /** Fixed served region; participants are generated strictly inside it. */
     private static final ServiceBounds BOUNDS = new ServiceBounds(6.10, 6.40, -75.70, -75.40);
 
-    private final DefaultRecommendationEngine engine = new DefaultRecommendationEngine(
+    private final RecommendationEngine engine = new RecommendationEngine(
             new MeetingValidator(),
             new GridCandidateGenerator(),
             new MetricCalculator(),
-            new ConfiguredOutlierDetector());
+            new OutlierDetector());
 
     /**
      * Property 12 &mdash; a valid, fully-routable meeting yields a Success whose
@@ -191,10 +191,8 @@ class ResultsCompletenessPropertyTest {
         Arbitrary<Integer> gridDensity = Arbitraries.integers().between(4, 36);
         Arbitrary<Double> radius = Arbitraries.doubles().between(5_000.0, 25_000.0).ofScale(1);
         Arbitrary<Double> epsilon = Arbitraries.doubles().between(0.1, 1.0).ofScale(3);
-        Arbitrary<OutlierRule> rules = Arbitraries.oneOf(
-                Arbitraries.doubles().between(1.5, 4.0).ofScale(2)
-                        .map(OutlierRule.MedianMultiple::new),
-                Arbitraries.just(new OutlierRule.Percentile(90)));
+        Arbitrary<OutlierRule> rules = Arbitraries.doubles().between(1.5, 4.0).ofScale(2)
+                .map(OutlierRule::new);
         return Combinators.combine(gridDensity, radius, rules, epsilon)
                 .as((n, r, rule, eps) -> new EngineConfig(BOUNDS, n, r, rule, eps));
     }

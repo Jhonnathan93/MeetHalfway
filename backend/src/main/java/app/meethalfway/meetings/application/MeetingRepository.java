@@ -1,4 +1,4 @@
-package app.meethalfway.meetings.domain.model;
+package app.meethalfway.meetings.application;
 
 import app.meethalfway.meetings.domain.model.Meeting;
 import java.util.Optional;

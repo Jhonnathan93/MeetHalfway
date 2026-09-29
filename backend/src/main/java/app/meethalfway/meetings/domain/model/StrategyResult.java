@@ -13,9 +13,8 @@ import app.meethalfway.shared.domain.ParticipantId;
  * <p>Requirement 8 mandates that each strategy return exactly one
  * {@link Coordinate} point (8.1, 8.3) together with the per-participant travel
  * time and the aggregate metrics {@code Sum_Time}, {@code Max_Time}, and
- * {@code Std_Dev} (8.2). This record is the immutable carrier of that result;
- * it mirrors {@link EvaluatedCandidate} but represents the chosen winner rather
- * than one of many candidates.
+ * {@code Std_Dev} (8.2). The same immutable value is used while evaluating
+ * candidates and after one has been selected.
  *
  * <p>Invariants enforced at construction:
  * <ul>

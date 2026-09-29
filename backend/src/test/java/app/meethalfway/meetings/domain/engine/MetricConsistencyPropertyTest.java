@@ -3,7 +3,7 @@ package app.meethalfway.meetings.domain.engine;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
+import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.shared.domain.Minutes;
 import app.meethalfway.shared.domain.ParticipantId;
 import java.util.LinkedHashMap;
@@ -91,7 +91,7 @@ class MetricConsistencyPropertyTest {
         }
         double expectedStdDev = Math.sqrt(sumSquaredDeviations / n);
 
-        EvaluatedCandidate candidate = calculator.evaluate(point, perParticipant);
+        StrategyResult candidate = calculator.evaluate(point, perParticipant);
 
         assertThat(candidate.sumTime()).isCloseTo(expectedSum, org.assertj.core.data.Offset.offset(TOLERANCE));
         assertThat(candidate.maxTime()).isEqualTo(expectedMax);

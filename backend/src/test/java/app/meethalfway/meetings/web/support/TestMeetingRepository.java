@@ -1,7 +1,7 @@
 package app.meethalfway.meetings.web.support;
 
 import app.meethalfway.meetings.domain.model.Meeting;
-import app.meethalfway.meetings.domain.model.MeetingRepository;
+import app.meethalfway.meetings.application.MeetingRepository;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;

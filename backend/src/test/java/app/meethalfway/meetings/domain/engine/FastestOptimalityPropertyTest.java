@@ -8,7 +8,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
+import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.shared.domain.Minutes;
 import app.meethalfway.shared.domain.ParticipantId;
 import net.jqwik.api.Arbitraries;
@@ -62,7 +62,7 @@ class FastestOptimalityPropertyTest {
 
     /**
      * Generates a non-empty list (1&ndash;20) of <em>metric-consistent</em>
-     * {@link EvaluatedCandidate}s, mirroring how the engine actually produces
+     * {@link StrategyResult}s, mirroring how the engine actually produces
      * candidates: each candidate's {@code Sum_Time}/{@code Max_Time}/{@code Std_Dev}
      * are derived by {@link MetricCalculator} from a single whole-minute
      * per-participant travel-time vector (Requirement 5.2), not drawn
@@ -75,13 +75,13 @@ class FastestOptimalityPropertyTest {
      * an in-range point.
      */
     @Provide
-    Arbitrary<List<EvaluatedCandidate>> candidateLists() {
+    Arbitrary<List<StrategyResult>> candidateLists() {
         Arbitrary<Integer> lats = Arbitraries.integers().between(-90, 90);
         Arbitrary<Integer> lngs = Arbitraries.integers().between(-180, 180);
         Arbitrary<List<Integer>> travelTimes =
                 Arbitraries.integers().between(0, 600).list().ofSize(PARTICIPANTS.size());
 
-        Arbitrary<EvaluatedCandidate> candidate =
+        Arbitrary<StrategyResult> candidate =
                 Combinators.combine(lats, lngs, travelTimes)
                         .as((lat, lng, times) -> {
                             Map<ParticipantId, Minutes> perParticipant = new LinkedHashMap<>();
@@ -102,14 +102,14 @@ class FastestOptimalityPropertyTest {
      */
     @Property(tries = 100)
     void noCandidateHasStrictlyLowerSumTimeBeyondEpsilon(
-            @ForAll("candidateLists") List<EvaluatedCandidate> candidates) {
+            @ForAll("candidateLists") List<StrategyResult> candidates) {
 
         Coordinate centroid = GeographicCentroid.of(pointsOf(candidates));
 
-        EvaluatedCandidate winner = selector.select(candidates, centroid);
+        StrategyResult winner = selector.select(candidates, centroid);
 
         double minimumSumTime = candidates.stream()
-                .mapToDouble(EvaluatedCandidate::sumTime)
+                .mapToDouble(StrategyResult::sumTime)
                 .min()
                 .orElseThrow();
 
@@ -118,9 +118,9 @@ class FastestOptimalityPropertyTest {
                 .isLessThanOrEqualTo(minimumSumTime + EPSILON_MINUTES);
     }
 
-    private static List<Coordinate> pointsOf(List<EvaluatedCandidate> candidates) {
+    private static List<Coordinate> pointsOf(List<StrategyResult> candidates) {
         List<Coordinate> points = new ArrayList<>(candidates.size());
-        for (EvaluatedCandidate c : candidates) {
+        for (StrategyResult c : candidates) {
             points.add(c.point());
         }
         return points;

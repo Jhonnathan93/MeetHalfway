@@ -8,7 +8,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.Test;
 
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
+import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.shared.domain.Minutes;
 import app.meethalfway.shared.domain.ParticipantId;
 
@@ -25,19 +25,19 @@ class MinimaxSelectorTest {
     private final TieBreaker tieBreaker = new TieBreaker(0.5);
     private final MinimaxSelector selector = new MinimaxSelector(tieBreaker);
 
-    private static EvaluatedCandidate candidate(
+    private static StrategyResult candidate(
             Coordinate point, double sumTime, int maxTime, double stdDev) {
         Map<ParticipantId, Minutes> perParticipant = new java.util.LinkedHashMap<>();
         perParticipant.put(new ParticipantId("p1"), new Minutes(maxTime));
-        return new EvaluatedCandidate(point, perParticipant, sumTime, maxTime, stdDev);
+        return new StrategyResult(point, perParticipant, sumTime, maxTime, stdDev);
     }
 
     @Test
     void selectsCandidateWithLowestMaxTime() {
         // Req 3.1: minimize Max_Time, independent of Sum_Time.
-        EvaluatedCandidate lowMax = candidate(new Coordinate(6.20, -75.60), 20.0, 4, 3.0);
-        EvaluatedCandidate midMax = candidate(new Coordinate(6.30, -75.50), 15.0, 6, 1.0);
-        EvaluatedCandidate highMax = candidate(new Coordinate(6.10, -75.70), 10.0, 9, 0.5);
+        StrategyResult lowMax = candidate(new Coordinate(6.20, -75.60), 20.0, 4, 3.0);
+        StrategyResult midMax = candidate(new Coordinate(6.30, -75.50), 15.0, 6, 1.0);
+        StrategyResult highMax = candidate(new Coordinate(6.10, -75.70), 10.0, 9, 0.5);
 
         assertThat(selector.select(List.of(midMax, highMax, lowMax), CENTROID)).isEqualTo(lowMax);
         // Deterministic regardless of input order.
@@ -47,8 +47,8 @@ class MinimaxSelectorTest {
     @Test
     void breaksMaxTimeTieByLowerSumTime() {
         // Req 3.2: Max_Time tied within ε, so lower Sum_Time wins.
-        EvaluatedCandidate lowerSum = candidate(new Coordinate(6.20, -75.60), 10.0, 5, 3.0);
-        EvaluatedCandidate higherSum = candidate(new Coordinate(6.30, -75.50), 18.0, 5, 1.0);
+        StrategyResult lowerSum = candidate(new Coordinate(6.20, -75.60), 10.0, 5, 3.0);
+        StrategyResult higherSum = candidate(new Coordinate(6.30, -75.50), 18.0, 5, 1.0);
 
         assertThat(selector.select(List.of(higherSum, lowerSum), CENTROID)).isEqualTo(lowerSum);
     }
@@ -56,8 +56,8 @@ class MinimaxSelectorTest {
     @Test
     void breaksSumTimeTieByLowerStdDev() {
         // Req 3.3: Max_Time and Sum_Time tied within ε, so lower Std_Dev wins.
-        EvaluatedCandidate lowerStdDev = candidate(new Coordinate(6.20, -75.60), 10.0, 5, 1.0);
-        EvaluatedCandidate higherStdDev = candidate(new Coordinate(6.30, -75.50), 10.3, 5, 4.0);
+        StrategyResult lowerStdDev = candidate(new Coordinate(6.20, -75.60), 10.0, 5, 1.0);
+        StrategyResult higherStdDev = candidate(new Coordinate(6.30, -75.50), 10.3, 5, 4.0);
 
         assertThat(selector.select(List.of(higherStdDev, lowerStdDev), CENTROID)).isEqualTo(lowerStdDev);
     }
@@ -65,8 +65,8 @@ class MinimaxSelectorTest {
     @Test
     void breaksStdDevTieByClosestToCentroid() {
         // Req 3.4: all metrics tied within ε, so nearest to centroid wins (non-ε).
-        EvaluatedCandidate near = candidate(new Coordinate(6.25, -75.551), 10.0, 5, 1.0);
-        EvaluatedCandidate far = candidate(new Coordinate(6.40, -75.40), 10.0, 5, 1.0);
+        StrategyResult near = candidate(new Coordinate(6.25, -75.551), 10.0, 5, 1.0);
+        StrategyResult far = candidate(new Coordinate(6.40, -75.40), 10.0, 5, 1.0);
 
         assertThat(selector.select(List.of(far, near), CENTROID)).isEqualTo(near);
     }
@@ -87,7 +87,7 @@ class MinimaxSelectorTest {
 
     @Test
     void rejectsNullCentroid() {
-        EvaluatedCandidate any = candidate(new Coordinate(6.20, -75.60), 10.0, 5, 1.0);
+        StrategyResult any = candidate(new Coordinate(6.20, -75.60), 10.0, 5, 1.0);
         assertThatThrownBy(() -> selector.select(List.of(any), null))
                 .isInstanceOf(IllegalArgumentException.class);
     }

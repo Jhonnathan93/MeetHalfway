@@ -26,7 +26,7 @@ import java.util.Optional;
 public record Meeting(
         String urlCode,
         MeetingInput input,
-        Optional<RecommendationOutcome> recommendation) {
+        Optional<RecommendationOutcome.Success> recommendation) {
 
     public Meeting {
         if (urlCode == null || urlCode.isBlank()) {

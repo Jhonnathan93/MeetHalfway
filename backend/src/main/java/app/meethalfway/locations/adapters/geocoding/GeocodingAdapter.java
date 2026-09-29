@@ -1,6 +1,6 @@
 package app.meethalfway.locations.adapters.geocoding;
 
-import app.meethalfway.config.GeocodingProperties;
+import app.meethalfway.config.MeetHalfwayProperties.Geocoding;
 import app.meethalfway.shared.domain.Coordinate;
 import app.meethalfway.meetings.domain.model.EngineConfig;
 import app.meethalfway.meetings.domain.model.ServiceBounds;
@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpRequest;
+import java.net.http.HttpClient;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -25,7 +27,7 @@ import java.util.List;
  * <p>Nominatim is chosen as the default because it is free and keyless. Its
  * usage policy requires a descriptive {@code User-Agent}/contact string and
  * modest request rates; both are supplied from backend configuration
- * ({@link GeocodingProperties}), never hard-coded. The adapter also accepts an
+ * ({@link Geocoding}), never hard-coded. The adapter also accepts an
  * optional API key so a swap to a keyed free-tier provider needs no code change.
  *
  * <p>Requirement 11.4 / 9.7: this adapter runs on the backend so the frontend
@@ -33,9 +35,8 @@ import java.util.List;
  * URL, key, User-Agent, and timeout are read from configuration and are never
  * logged or serialized to clients.
  *
- * <p>The single raw HTTP step is delegated to an injected {@link HttpExchange}
- * (JDK {@link java.net.http.HttpClient} in production) so the mapping logic is
- * unit-testable offline.
+ * <p>The JDK {@link HttpClient} performs the provider request directly; no
+ * generic transport wrapper is needed at this external-system boundary.
  *
  * <p>Both operations call the provider {@code /search} endpoint returning JSON:
  * an array of objects carrying {@code display_name}, {@code place_id},
@@ -44,19 +45,19 @@ import java.util.List;
  */
 public final class GeocodingAdapter implements GeocodingProvider {
 
-    private final HttpExchange http;
+    private final HttpClient http;
     private final ObjectMapper objectMapper;
-    private final GeocodingProperties properties;
+    private final Geocoding properties;
 
     /**
      * Creates the adapter with its collaborators (constructor injection only).
      *
-     * @param http         the HTTP transport seam; must not be null
+     * @param http         the HTTP client; must not be null
      * @param objectMapper the JSON mapper for parsing provider responses; must not be null
      * @param properties   the backend-only geocoding configuration; must not be null,
      *                     and must carry a non-blank base URL and User-Agent
      */
-    public GeocodingAdapter(HttpExchange http, ObjectMapper objectMapper, GeocodingProperties properties) {
+    public GeocodingAdapter(HttpClient http, ObjectMapper objectMapper, Geocoding properties) {
         if (http == null) {
             throw new IllegalArgumentException("http must not be null");
         }
@@ -195,7 +196,11 @@ public final class GeocodingAdapter implements GeocodingProvider {
                 .header("Accept", "application/json")
                 .GET()
                 .build();
-        String body = http.send(request);
+        HttpResponse<String> response = http.send(request, HttpResponse.BodyHandlers.ofString());
+        if (response.statusCode() < 200 || response.statusCode() >= 300) {
+            throw new IOException("geocoding provider returned HTTP status " + response.statusCode());
+        }
+        String body = response.body();
         if (body == null || body.isBlank()) {
             return null;
         }

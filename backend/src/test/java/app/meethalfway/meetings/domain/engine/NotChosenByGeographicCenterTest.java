@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
+import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.shared.domain.Minutes;
 import app.meethalfway.shared.domain.ParticipantId;
 import app.meethalfway.shared.domain.TransportMode;
@@ -68,9 +68,9 @@ class NotChosenByGeographicCenterTest {
 
         List<Coordinate> candidates = List.of(centroid, offCentre);
 
-        EvaluatedCandidate best = candidates.stream()
+        StrategyResult best = candidates.stream()
                 .map(point -> metrics.evaluate(point, travelTimesTo(routing, point)))
-                .min(Comparator.comparingDouble(EvaluatedCandidate::sumTime))
+                .min(Comparator.comparingDouble(StrategyResult::sumTime))
                 .orElseThrow();
 
         Coordinate geographicCentroid = geographicCentroid(List.of(aliceHome, bobHome));
@@ -87,7 +87,7 @@ class NotChosenByGeographicCenterTest {
 
         // And the centroid, though geographically central, is strictly worse on
         // real travel time, which is exactly why it is not selected.
-        EvaluatedCandidate atCentroid =
+        StrategyResult atCentroid =
                 metrics.evaluate(centroid, travelTimesTo(routing, centroid));
         assertThat(atCentroid.sumTime()).isEqualTo(60.0);
         assertThat(best.sumTime()).isLessThan(atCentroid.sumTime());

@@ -5,7 +5,7 @@ import java.util.List;
 
 import app.meethalfway.meetings.domain.model.DomainConstants;
 import app.meethalfway.shared.domain.Coordinate;
-import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
+import app.meethalfway.meetings.domain.model.StrategyResult;
 
 /**
  * Selects the {@code Fairest_Strategy} winner: among the candidates whose total
@@ -59,7 +59,7 @@ import app.meethalfway.meetings.domain.model.EvaluatedCandidate;
  * <p>This is framework-free domain logic with no dependency on HTTP, persistence,
  * or any provider.
  */
-public final class FairestSelector implements StrategySelector {
+public final class FairestSelector {
 
     private final TieBreaker tieBreaker;
 
@@ -92,8 +92,7 @@ public final class FairestSelector implements StrategySelector {
      * @throws IllegalArgumentException if {@code candidates} is null/empty or
      *                                  {@code centroid} is null
      */
-    @Override
-    public EvaluatedCandidate select(List<EvaluatedCandidate> candidates, Coordinate centroid) {
+    public StrategyResult select(List<StrategyResult> candidates, Coordinate centroid) {
         if (candidates == null || candidates.isEmpty()) {
             throw new IllegalArgumentException("candidates must not be null or empty");
         }
@@ -101,16 +100,12 @@ public final class FairestSelector implements StrategySelector {
             throw new IllegalArgumentException("centroid must not be null");
         }
 
-        List<EvaluatedCandidate> feasible = feasibleSet(candidates);
+        List<StrategyResult> feasible = feasibleSet(candidates);
 
         return tieBreaker.selectWinner(
                 feasible,
-                tieBreaker.totalOrder(
-                        centroid,
-                        List.of(
-                                tieBreaker.byStdDev(),
-                                tieBreaker.bySumTime(),
-                                tieBreaker.byMaxTime())));
+                centroid,
+                List.of(StrategyResult::stdDev, StrategyResult::sumTime, StrategyResult::maxTime));
     }
 
     /**
@@ -119,9 +114,9 @@ public final class FairestSelector implements StrategySelector {
      * the {@code Fastest_Optimum T*}. This set is never empty — the candidate
      * achieving {@code T*} is always included.
      */
-    private List<EvaluatedCandidate> feasibleSet(List<EvaluatedCandidate> candidates) {
+    private List<StrategyResult> feasibleSet(List<StrategyResult> candidates) {
         double tStar = Double.POSITIVE_INFINITY;
-        for (EvaluatedCandidate candidate : candidates) {
+        for (StrategyResult candidate : candidates) {
             if (candidate.sumTime() < tStar) {
                 tStar = candidate.sumTime();
             }
@@ -130,8 +125,8 @@ public final class FairestSelector implements StrategySelector {
         double threshold =
                 (1.0 + DomainConstants.EFFICIENCY_TOLERANCE) * tStar + tieBreaker.epsilonMinutes();
 
-        List<EvaluatedCandidate> feasible = new ArrayList<>();
-        for (EvaluatedCandidate candidate : candidates) {
+        List<StrategyResult> feasible = new ArrayList<>();
+        for (StrategyResult candidate : candidates) {
             if (candidate.sumTime() <= threshold) {
                 feasible.add(candidate);
             }

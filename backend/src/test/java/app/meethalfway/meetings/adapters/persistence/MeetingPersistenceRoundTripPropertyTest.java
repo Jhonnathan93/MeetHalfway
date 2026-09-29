@@ -13,7 +13,7 @@ import app.meethalfway.meetings.domain.model.RecommendationOutcome;
 import app.meethalfway.meetings.domain.model.StrategyResult;
 import app.meethalfway.meetings.domain.model.StrategyResults;
 import app.meethalfway.shared.domain.TransportMode;
-import app.meethalfway.meetings.domain.model.MeetingRepository;
+import app.meethalfway.meetings.application.MeetingRepository;
 import app.meethalfway.meetings.adapters.persistence.JpaMeetingRepository;
 import app.meethalfway.meetings.adapters.persistence.MeetingMapper;
 
@@ -139,7 +139,7 @@ class MeetingPersistenceRoundTripPropertyTest {
 
     private Arbitrary<Meeting> meetingWithOptionalRecommendation(MeetingInput input) {
         String urlCode = "M-" + UUID.randomUUID();
-        Arbitrary<Optional<RecommendationOutcome>> outcomes = recommendation(input);
+        Arbitrary<Optional<RecommendationOutcome.Success>> outcomes = recommendation(input);
         return outcomes.map(outcome -> new Meeting(urlCode, input, outcome));
     }
 
@@ -164,7 +164,7 @@ class MeetingPersistenceRoundTripPropertyTest {
      * The strategy results are synthetic but structurally valid; equivalence, not
      * optimality, is what the round-trip asserts.
      */
-    private Arbitrary<Optional<RecommendationOutcome>> recommendation(MeetingInput input) {
+    private Arbitrary<Optional<RecommendationOutcome.Success>> recommendation(MeetingInput input) {
         List<ParticipantId> ids = new ArrayList<>();
         for (ParticipantInput participant : input.participants()) {
             ids.add(participant.id());
@@ -177,7 +177,7 @@ class MeetingPersistenceRoundTripPropertyTest {
         });
     }
 
-    private Optional<RecommendationOutcome> outcomeWithTradeoff(List<ParticipantId> ids) {
+    private Optional<RecommendationOutcome.Success> outcomeWithTradeoff(List<ParticipantId> ids) {
         // One outlier is dropped in the excluding variant; keep at least one.
         ParticipantId outlier = ids.get(ids.size() - 1);
         List<ParticipantId> kept = new ArrayList<>(ids);

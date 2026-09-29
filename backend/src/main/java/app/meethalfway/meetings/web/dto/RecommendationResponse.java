@@ -12,18 +12,15 @@ import java.util.List;
  * represented here; they are surfaced as an HTTP 422 error envelope so a
  * participant is never silently dropped (Requirement 6).
  *
- * <p><strong>Additive display metadata (Requirements 10.7, 10.9, 10.8, 12.4):</strong>
- * {@code warnings} was added to surface coordinates that fell outside the valid
- * latitude/longitude ranges without rejecting the whole response. It defaults to
- * an empty list (never {@code null}) when there are no out-of-range coordinates,
- * so the change is backward-compatible: no existing field was removed or renamed.
+ * <p>{@code warnings} is retained as an empty array for wire compatibility with
+ * existing clients. Domain coordinates are validated when constructed, so the
+ * mapper cannot receive out-of-range coordinates.
  *
  * <p>JSON fields are camelCase.
  *
  * @param results         the three strategy results
  * @param outlierTradeoff the outlier trade-off, or {@code null} when absent
- * @param warnings        out-of-range candidate/participant-origin warnings; never
- *                        {@code null}, empty when there are none
+ * @param warnings        legacy compatibility field; never {@code null}
  */
 public record RecommendationResponse(
         StrategyResultsResponse results,

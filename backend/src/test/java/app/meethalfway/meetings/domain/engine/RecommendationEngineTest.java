@@ -22,7 +22,7 @@ import app.meethalfway.shared.domain.TransportMode;
 import app.meethalfway.shared.testing.FakeRoutingProvider;
 
 /**
- * Example-based unit tests for {@link DefaultRecommendationEngine} wiring
+ * Example-based unit tests for {@link RecommendationEngine} wiring
  * (task 7.1). These pin down the two headline behaviors: a fully routable
  * meeting yields a {@link RecommendationOutcome.Success} with one result per
  * strategy over every participant (Requirements 8.1, 8.2, 8.3), and a meeting
@@ -34,24 +34,24 @@ import app.meethalfway.shared.testing.FakeRoutingProvider;
  * results completeness, determinism) are covered separately by the property
  * tests in tasks 7.3&ndash;7.5.
  */
-class DefaultRecommendationEngineTest {
+class RecommendationEngineTest {
 
     private static final Coordinate ALICE = new Coordinate(6.20, -75.60);
     private static final Coordinate BOB = new Coordinate(6.25, -75.55);
     private static final Coordinate CAROL = new Coordinate(6.30, -75.50);
 
-    private final DefaultRecommendationEngine engine = new DefaultRecommendationEngine(
+    private final RecommendationEngine engine = new RecommendationEngine(
             new MeetingValidator(),
             new GridCandidateGenerator(),
             new MetricCalculator(),
-            new ConfiguredOutlierDetector());
+            new OutlierDetector());
 
     private static EngineConfig config() {
         return new EngineConfig(
                 new ServiceBounds(6.10, 6.40, -75.70, -75.40),
                 25,
                 15_000.0,
-                new OutlierRule.MedianMultiple(2.0),
+                new OutlierRule(2.0),
                 0.5);
     }
 
@@ -235,19 +235,4 @@ class DefaultRecommendationEngineTest {
                 .isInstanceOf(IllegalArgumentException.class);
     }
 
-    @Test
-    void rejectsNullDependencies() {
-        assertThatThrownBy(() -> new DefaultRecommendationEngine(
-                null, new GridCandidateGenerator(), new MetricCalculator(), new ConfiguredOutlierDetector()))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new DefaultRecommendationEngine(
-                new MeetingValidator(), null, new MetricCalculator(), new ConfiguredOutlierDetector()))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new DefaultRecommendationEngine(
-                new MeetingValidator(), new GridCandidateGenerator(), null, new ConfiguredOutlierDetector()))
-                .isInstanceOf(IllegalArgumentException.class);
-        assertThatThrownBy(() -> new DefaultRecommendationEngine(
-                new MeetingValidator(), new GridCandidateGenerator(), new MetricCalculator(), null))
-                .isInstanceOf(IllegalArgumentException.class);
-    }
 }

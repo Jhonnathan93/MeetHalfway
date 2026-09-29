@@ -6,9 +6,8 @@ import app.meethalfway.routing.domain.port.RouteResult;
 import app.meethalfway.routing.domain.port.RoutingProvider;
 
 /**
- * A {@link RoutingProvider} that is never actually consulted in web-adapter
- * tests (the {@link StubRecommendationEngine} short-circuits computation). It
- * exists only to satisfy the non-null dependency of {@code ComputeRecommendations}.
+ * A {@link RoutingProvider} that fails if accidentally used by route-metadata
+ * tests, which construct the real engine but never execute a recommendation.
  */
 public final class NoOpRoutingProvider implements RoutingProvider {
 

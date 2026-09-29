@@ -5,6 +5,7 @@ import app.meethalfway.locations.domain.port.AddressSuggestion;
 import app.meethalfway.shared.web.dto.CoordinateResponse;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.stereotype.Component;
 
 /**
  * Explicit, stateless mapper between geocoding domain types and the locations
@@ -17,6 +18,7 @@ import java.util.List;
  * (R2.5). It is framework-free and holds no state, so it is safe to share as a
  * singleton bean.
  */
+@Component
 public final class LocationMapper {
 
     /**
