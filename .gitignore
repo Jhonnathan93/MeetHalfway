@@ -27,6 +27,8 @@ frontend/dist/
 frontend/.vite/
 frontend/dist-ssr/
 frontend/coverage/
+frontend/test-results/
+frontend/playwright-report/
 npm-debug.log*
 yarn-error.log*
 pnpm-debug.log*
