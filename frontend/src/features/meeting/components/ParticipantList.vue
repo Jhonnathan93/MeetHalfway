@@ -45,16 +45,16 @@ const participantItems = computed(() => props.participants.map((participant) => 
 </template>
 
 <style scoped>
-.participant-list { border-top: 1px solid var(--color-border); padding-top: var(--space-4); }
+.participant-list { padding-bottom: var(--space-1); }
 .participant-list__heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-2); }
-.participant-list h2 { margin: 0; font-family: var(--font-display); font-size: 1.45rem; font-weight: 400; letter-spacing: .03em; }
-.participant-list__count { min-width: 22px; padding: 2px 7px; border-radius: 99px; background: var(--color-surface-hover); color: var(--color-text-muted); font-size: .75rem; text-align: center; }
+.participant-list h2 { margin: 0; font-size: 1.15rem; font-weight: 760; letter-spacing: -.025em; }
+.participant-list__count { min-width: 22px; padding: 2px 7px; border-radius: 99px; background: var(--color-primary-soft); color: var(--color-primary); font-size: .75rem; font-weight: 750; text-align: center; }
 .participant-list__empty { margin: 0; color: var(--color-text-muted); font-size: .82rem; }
-.participant-list ul { display: grid; gap: 3px; margin: 0; padding: 0; list-style: none; }
-.participant-list__item { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: center; gap: var(--space-2); padding: var(--space-2); border: 1px solid transparent; border-radius: var(--radius-sm); background: transparent; color: var(--color-text); cursor: pointer; text-align: left; }
+.participant-list ul { display: grid; gap: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--color-rule); }
+.participant-list__item { width: 100%; display: grid; grid-template-columns: 30px minmax(0, 1fr); align-items: center; gap: var(--space-2); padding: var(--space-3) var(--space-1); border: 0; border-bottom: 1px solid var(--color-rule); border-radius: 0; background: transparent; color: var(--color-text); text-align: left; transition: background-color 160ms ease; }
 .participant-list__item:hover { background: var(--color-surface-hover); }
-.participant-list__item--selected { border-color: var(--color-primary); background: var(--color-primary-soft); }
-.participant-list__avatar { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; color: #111827; background: #d9e3ff; font-size: .66rem; font-weight: 800; }
+.participant-list__item--selected { background: var(--color-primary-soft); }
+.participant-list__avatar { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; color: #fffef9; background: var(--color-text); font-size: .66rem; font-weight: 800; }
 .participant-list__name { overflow: hidden; font-size: .82rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
-.participant-list__selected { grid-column: 2; color: var(--color-primary-hover); font-size: .66rem; }
+.participant-list__selected { grid-column: 2; color: var(--color-primary); font-size: .66rem; font-weight: 700; }
 </style>

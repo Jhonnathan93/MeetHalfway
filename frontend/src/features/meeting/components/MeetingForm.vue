@@ -176,51 +176,56 @@ function onSubmit(): void {
   flex-direction: column;
   gap: var(--space-4);
   margin-top: var(--space-5);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--color-rule);
 }
 
 .meeting-form__heading {
   margin: 0;
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 400;
-  letter-spacing: 0.035em;
+  font-size: 1.15rem;
+  font-weight: 760;
+  letter-spacing: -0.025em;
 }
 
 .meeting-form__mode {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-3);
+  margin: 0;
+  border: 0;
+  border-block: 1px solid var(--color-rule);
+  padding: var(--space-3) 0;
   display: flex;
   gap: var(--space-4);
-  color: var(--color-text-muted);
+  color: var(--color-text);
   font-size: .84rem;
 }
+
+.meeting-form__mode legend { padding: 0 var(--space-2) 0 0; color: var(--color-text-subtle); font-size: .68rem; font-weight: 750; letter-spacing: .1em; text-transform: uppercase; }
+.meeting-form__mode label { display: inline-flex; align-items: center; gap: 6px; font-weight: 650; }
+.meeting-form__mode input { accent-color: var(--color-primary); }
 
 .meeting-form__participant {
   display: grid;
   gap: var(--space-2);
-  padding: var(--space-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  margin-bottom: var(--space-3);
-  background: var(--color-surface-raised);
+  padding: var(--space-4) 0;
+  border-bottom: 1px solid var(--color-rule);
 }
 
+.meeting-form__participants h3 { margin: 0 0 var(--space-1); color: var(--color-text); font-size: .9rem; font-weight: 750; letter-spacing: -.01em; }
+
 .meeting-form__name {
-  background-color: var(--color-surface);
+  background-color: transparent;
   color: var(--color-text);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: var(--space-2);
+  border: 0;
+  border-bottom: 1px solid var(--color-border-strong);
+  border-radius: 0;
+  padding: var(--space-2) 0;
   font: inherit;
+  font-weight: 680;
 }
 
 .meeting-form__add,
 .meeting-form__submit,
 .meeting-form__remove {
-  background-color: var(--color-primary);
-  color: #fff;
-  border: none;
+  border: 0;
   border-radius: var(--radius-sm);
   padding: var(--space-2) var(--space-3);
   font: inherit;
@@ -228,7 +233,7 @@ function onSubmit(): void {
 }
 
 .meeting-form__remove {
-  background-color: transparent;
+  background: transparent;
   color: var(--color-danger);
   justify-self: start;
   padding: var(--space-1) 0;
@@ -239,9 +244,11 @@ function onSubmit(): void {
   cursor: not-allowed;
 }
 
-.meeting-form__submit { min-height: 42px; font-weight: 700; }
-.meeting-form__add { justify-self: start; background: var(--color-surface-hover); }
-.meeting-form__add:hover, .meeting-form__submit:not(:disabled):hover { background: var(--color-primary-hover); }
+.meeting-form__submit { min-height: 48px; background: var(--color-primary); color: #fffef9; font-weight: 750; letter-spacing: .01em; transition: background-color 160ms ease, transform 160ms ease; }
+.meeting-form__add { justify-self: start; color: var(--color-primary); background: transparent; font-weight: 700; padding-left: 0; }
+.meeting-form__add::before { content: '+'; margin-right: 7px; font-size: 1.1rem; font-weight: 400; }
+.meeting-form__add:hover { color: var(--color-primary-hover); }
+.meeting-form__submit:not(:disabled):hover { background: var(--color-primary-hover); transform: translateY(-1px); }
 
 .meeting-form__error {
   margin: 0;

@@ -38,11 +38,9 @@ const { t } = useI18n()
 
 <style scoped>
 .routing-error {
-  background-color: var(--color-surface-raised);
-  border: 1px solid var(--color-danger);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  margin-top: var(--space-3);
+  border-top: 2px solid var(--color-danger);
+  padding-top: var(--space-4);
+  margin-top: var(--space-5);
 }
 
 .routing-error__heading {
@@ -67,7 +65,7 @@ const { t } = useI18n()
   display: flex;
   flex-direction: column;
   gap: 2px;
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid #dfc1bc;
   padding-top: var(--space-2);
 }
 

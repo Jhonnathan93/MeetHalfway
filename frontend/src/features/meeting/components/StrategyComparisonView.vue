@@ -125,7 +125,9 @@ const cards = computed<StrategyCard[]>(() =>
 <style scoped>
 .strategy-comparison__heading {
   margin: 0 0 var(--space-3);
-  font-size: 1.25rem;
+  font-size: 1.1rem;
+  font-weight: 760;
+  letter-spacing: -.02em;
 }
 
 .strategy-comparison__converged {
@@ -137,7 +139,8 @@ const cards = computed<StrategyCard[]>(() =>
 .strategy-comparison__grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: var(--space-3);
+  gap: 0;
+  border-top: 1px solid var(--color-border-strong);
 }
 
 @media (max-width: 900px) {
@@ -147,16 +150,19 @@ const cards = computed<StrategyCard[]>(() =>
 }
 
 .strategy-card {
-  background-color: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
+  padding: var(--space-4);
+  border-right: 1px solid var(--color-border);
+  background: rgba(255, 255, 255, .44);
 }
+.strategy-card:last-child { border-right: 0; }
+.strategy-card[data-strategy='fairest'] { background: var(--color-primary-soft); }
 
 .strategy-card__title {
   margin: 0 0 var(--space-1);
-  font-size: 1.05rem;
+  font-size: 1rem;
   color: var(--color-primary);
+  font-weight: 780;
+  letter-spacing: -.02em;
 }
 
 .strategy-card__hint {
@@ -172,8 +178,8 @@ const cards = computed<StrategyCard[]>(() =>
 }
 
 .strategy-card__metric {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-2);
 }
 
@@ -202,12 +208,19 @@ const cards = computed<StrategyCard[]>(() =>
 }
 
 .strategy-card__participants li {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-2);
 }
 
 .strategy-card__participant-time {
   font-variant-numeric: tabular-nums;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+@media (max-width: 900px) {
+  .strategy-card { border-right: 0; border-bottom: 1px solid var(--color-border); }
+  .strategy-card:last-child { border-bottom: 0; }
 }
 </style>

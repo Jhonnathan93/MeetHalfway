@@ -53,10 +53,10 @@ const coordinate = (point: { lat: number; lng: number }) => t('participants.coor
 </template>
 
 <style scoped>
-.participant-details { width: min(360px, calc(100vw - 48px)); padding: var(--space-4); border: 1px solid var(--color-border-strong); border-radius: var(--radius-md); background: var(--color-map-overlay); box-shadow: var(--shadow-floating); backdrop-filter: blur(10px); }
+.participant-details { width: min(360px, calc(100vw - 48px)); padding: var(--space-5); border-radius: var(--radius-md); background: var(--color-map-overlay); box-shadow: var(--shadow-floating); }
 .participant-details__header { display: grid; grid-template-columns: 44px minmax(0, 1fr) 28px; gap: var(--space-3); align-items: center; padding-bottom: var(--space-4); border-bottom: 1px solid var(--color-border); }
-.participant-details__avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #101725; background: #d9e3ff; font-weight: 800; }
-.participant-details h2 { margin: 0; font-family: var(--font-display); font-size: 1.55rem; font-weight: 400; letter-spacing: .035em; }
+.participant-details__avatar { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; color: #fffef9; background: var(--color-text); font-weight: 800; }
+.participant-details h2 { margin: 0; font-size: 1.15rem; font-weight: 780; letter-spacing: -.025em; }
 .participant-details__header p { margin: 2px 0 0; color: var(--color-text-muted); font-size: .72rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .participant-details__close { width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; color: var(--color-text-muted); background: transparent; cursor: pointer; font-size: 1.35rem; line-height: 1; }
 .participant-details__close:hover { color: var(--color-text); background: var(--color-surface-hover); }
@@ -64,6 +64,6 @@ const coordinate = (point: { lat: number; lng: number }) => t('participants.coor
 .participant-details__facts div { display: grid; gap: 2px; }
 .participant-details dt { color: var(--color-text-subtle); font-size: .64rem; font-weight: 750; letter-spacing: .08em; text-transform: uppercase; }
 .participant-details dd { margin: 0; color: var(--color-text); font-size: .84rem; font-variant-numeric: tabular-nums; }
-.participant-details__time { color: var(--color-success) !important; font-family: var(--font-display); font-size: 1.8rem !important; letter-spacing: .04em; }
+.participant-details__time { color: var(--color-success) !important; font-size: 1.25rem !important; font-weight: 780; letter-spacing: -.02em; }
 .participant-details__muted { color: var(--color-text-muted) !important; }
 </style>

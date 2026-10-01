@@ -8,7 +8,9 @@ const { t } = useI18n()
 <template>
   <header class="app-navbar">
     <a class="app-navbar__brand" href="#workspace" :aria-label="t('app.title')">
-      <span class="app-navbar__mark" aria-hidden="true">↔</span>
+      <span class="app-navbar__mark" aria-hidden="true">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7 20h25M25 13l7 7-7 7M15 27l-7-7 7-7" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </span>
       <span>
         <strong>{{ t('app.title') }}</strong>
         <small>{{ t('app.workspace') }}</small>
@@ -31,20 +33,21 @@ const { t } = useI18n()
 
 <style scoped>
 .app-navbar {
-  min-height: 68px;
+  min-height: 64px;
   display: flex;
   align-items: center;
-  gap: var(--space-5);
+  gap: var(--space-4);
   padding: 0 var(--space-5);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  color: #eef3ed;
+  border-bottom: 1px solid #294055;
+  background: #12243a;
 }
 
 .app-navbar__brand {
   display: inline-flex;
   align-items: center;
   gap: var(--space-3);
-  color: var(--color-text);
+  color: #fffef9;
   text-decoration: none;
   min-width: max-content;
 }
@@ -54,29 +57,28 @@ const { t } = useI18n()
   place-items: center;
   width: 34px;
   height: 34px;
-  border-radius: 11px;
-  color: white;
-  background: var(--color-primary);
-  font-size: 1.3rem;
-  font-weight: 700;
+  border: 1px solid #86a394;
+  border-radius: 50%;
+  color: #d1e6d9;
 }
+
+.app-navbar__mark svg { width: 21px; height: 21px; }
 
 .app-navbar__brand strong {
   display: block;
-  font-family: var(--font-display);
-  font-size: 1.45rem;
-  font-weight: 400;
-  letter-spacing: 0.035em;
+  font-size: 1.02rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
   line-height: 1;
 }
 
 .app-navbar__brand small {
   display: block;
   margin-top: 2px;
-  color: var(--color-text-subtle);
+  color: #aabdb0;
   font-size: 0.67rem;
   font-weight: 600;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
@@ -93,7 +95,7 @@ const { t } = useI18n()
   border: 0;
   border-bottom: 2px solid transparent;
   padding: 0 var(--space-3);
-  color: var(--color-text-muted);
+  color: #b9c8be;
   background: transparent;
   font-size: 0.85rem;
   font-weight: 600;
@@ -101,11 +103,13 @@ const { t } = useI18n()
 }
 
 .app-navbar__link--active {
-  color: var(--color-text);
-  border-bottom-color: var(--color-primary);
+  color: #fffef9;
+  border-bottom-color: #7ec4a7;
 }
 
-.app-navbar__link:disabled { cursor: not-allowed; opacity: 0.45; }
+.app-navbar__link:not(:disabled):hover { color: #fffef9; }
+
+.app-navbar__link:disabled { opacity: 0.42; }
 .app-navbar :deep(.language-selector) { margin-left: auto; }
 
 @media (max-width: 680px) {

@@ -38,14 +38,15 @@ function onChange(event: Event): void {
 }
 
 .language-selector__label {
-  color: var(--color-text-muted);
-  font-size: 0.875rem;
+  color: #b9c8be;
+  font-size: 0.75rem;
+  font-weight: 650;
 }
 
 .language-selector__select {
-  background-color: var(--color-surface-raised);
-  color: var(--color-text);
-  border: 1px solid var(--color-border);
+  background-color: transparent;
+  color: #fffef9;
+  border: 1px solid #526a70;
   border-radius: var(--radius-sm);
   padding: var(--space-1) var(--space-2);
   font: inherit;

@@ -91,16 +91,15 @@ const avgExcluding = computed(() => formatMetric(props.tradeoff.avgTravelTimeExc
 
 <style scoped>
 .outlier-panel {
-  background-color: var(--color-surface-raised);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-3);
-  margin-top: var(--space-4);
+  border-top: 2px solid var(--color-border-strong);
+  padding-top: var(--space-4);
+  margin-top: var(--space-5);
 }
 
 .outlier-panel__heading {
   margin: 0 0 var(--space-2);
-  font-size: 1.15rem;
+  font-size: 1.05rem;
+  font-weight: 760;
 }
 
 .outlier-panel__explanation {
@@ -118,32 +117,34 @@ const avgExcluding = computed(() => formatMetric(props.tradeoff.avgTravelTimeExc
 .outlier-panel__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
+  gap: 0;
+  border-top: 1px solid var(--color-border);
 }
 
 @media (max-width: 700px) {
   .outlier-panel__grid {
     grid-template-columns: 1fr;
   }
+  .outlier-panel__side, .outlier-panel__side:last-child { border-right: 0; }
 }
 
 .outlier-panel__side {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-right: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
   padding: var(--space-3);
 }
+.outlier-panel__side:last-child { border-right: 0; }
 
 .outlier-panel__side--selected {
-  border-color: var(--color-primary);
+  background: var(--color-primary-soft);
 }
 
 .outlier-panel__button {
   margin-top: var(--space-2);
   padding: var(--space-1) var(--space-2);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-border-strong);
   border-radius: var(--radius-sm);
-  background: var(--color-surface-raised);
+  background: transparent;
   color: var(--color-text);
   cursor: pointer;
 }
