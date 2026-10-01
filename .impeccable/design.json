@@ -1,0 +1,49 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-01T00:00:00Z",
+  "title": "Design System: MeetHalfway",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Active Route Emerald", "canonical": "#1f6b5d", "tonalRamp": ["#102b28", "#155447", "#1f6b5d", "#3d8977", "#77b49f", "#b9d9cb", "#dcece4", "#f0f7f3"] },
+      "navy-ink": { "role": "neutral", "displayName": "Midnight Service Ink", "canonical": "#12243a", "tonalRamp": ["#0c1828", "#12243a", "#294055", "#526476", "#84929c", "#bac2c5", "#e3e7e4", "#f7f8f4"] },
+      "paper": { "role": "neutral", "displayName": "Mineral Paper", "canonical": "#f8f7f1", "tonalRamp": ["#374039", "#657068", "#95a59b", "#cad2cb", "#dbe0da", "#e9ece6", "#f8f7f1", "#ffffff"] },
+      "exception": { "role": "secondary", "displayName": "Exception Coral", "canonical": "#b64032", "tonalRamp": ["#441b18", "#783027", "#b64032", "#d36958", "#e8a195", "#f4cdc6", "#f9e5e0", "#fdf6f3"] }
+    },
+    "typographyMeta": {
+      "body": { "displayName": "Operational Body", "purpose": "All planning copy and map context." },
+      "title": { "displayName": "Ledger Title", "purpose": "Section and workspace hierarchy without a display face." },
+      "label": { "displayName": "Data Label", "purpose": "Transport, metric, and supporting metadata." }
+    },
+    "shadows": [
+      { "name": "panel", "value": "0 12px 28px rgba(18, 36, 58, 0.12)", "purpose": "Map controls and small active overlays." },
+      { "name": "floating", "value": "0 18px 42px rgba(18, 36, 58, 0.18)", "purpose": "Result and participant panels above the map." }
+    ],
+    "motion": [
+      { "name": "ledger-arrival", "value": "420ms cubic-bezier(.16, 1, .3, 1)", "purpose": "Result ledger arrival; disabled by reduced-motion preference." },
+      { "name": "state", "value": "160ms ease", "purpose": "Button and participant-row state feedback." }
+    ],
+    "breakpoints": [
+      { "name": "comparison-stack", "value": "900px" },
+      { "name": "mobile-drawer", "value": "700px" }
+    ]
+  },
+  "components": [
+    { "name": "Primary Planning Action", "kind": "button", "refersTo": "button-primary", "description": "The one decisive calculation action.", "html": "<button class=\"ds-btn-primary\">Find meeting points</button>", "css": ".ds-btn-primary { min-height:48px; padding:8px 12px; border:0; border-radius:8px; background:#1f6b5d; color:#f8f7f1; font:750 14px Inter,system-ui,sans-serif; letter-spacing:.01em; transition:background-color 160ms ease,transform 160ms ease; } .ds-btn-primary:hover { background:#155447; transform:translateY(-1px); } .ds-btn-primary:focus-visible { outline:none; box-shadow:0 0 0 3px rgba(31,107,93,.28); }" },
+    { "name": "Ledger Field", "kind": "input", "refersTo": "input-ledger", "description": "An address or participant field that belongs to a ruled record.", "html": "<input class=\"ds-input-ledger\" placeholder=\"Start typing an address\" />", "css": ".ds-input-ledger { width:100%; padding:8px 0; border:0; border-bottom:1px solid #95a59b; border-radius:0; background:transparent; color:#12243a; font:600 14px Inter,system-ui,sans-serif; caret-color:#1f6b5d; } .ds-input-ledger:focus { outline:none; } .ds-input-ledger:focus-visible { box-shadow:0 0 0 3px rgba(31,107,93,.28); }" },
+    { "name": "Service Navigation", "kind": "nav", "refersTo": "nav-service", "description": "The fixed civic-service bar above the planning field.", "html": "<nav class=\"ds-nav-service\"><strong>MeetHalfway</strong><a href=\"#\">Meeting</a></nav>", "css": ".ds-nav-service { display:flex; align-items:center; gap:24px; min-height:64px; padding:0 24px; background:#12243a; color:#f8f7f1; font:650 13px Inter,system-ui,sans-serif; } .ds-nav-service a { align-self:stretch; display:flex; align-items:center; color:#b9c8be; border-bottom:2px solid transparent; text-decoration:none; } .ds-nav-service a:hover,.ds-nav-service a:focus-visible { color:#f8f7f1; border-bottom-color:#7ec4a7; outline:none; }" },
+    { "name": "Participant Manifest Row", "kind": "custom", "refersTo": "participant-manifest", "description": "A person record that connects the rail to the map.", "html": "<button class=\"ds-person-row\"><span class=\"ds-avatar\">AM</span><span>Ana Morales</span></button>", "css": ".ds-person-row { display:grid; grid-template-columns:30px 1fr; align-items:center; gap:8px; width:100%; padding:12px 4px; border:0; border-bottom:1px solid #dbe0da; background:transparent; color:#12243a; text-align:left; font:650 13px Inter,system-ui,sans-serif; } .ds-person-row:hover { background:#e9eee7; } .ds-person-row:focus-visible { outline:none; box-shadow:0 0 0 3px rgba(31,107,93,.28); } .ds-avatar { display:grid; place-items:center; width:30px; height:30px; border-radius:50%; background:#12243a; color:#f8f7f1; font-size:10px; font-weight:800; }" },
+    { "name": "Strategy Ledger Column", "kind": "card", "refersTo": "strategy-ledger", "description": "A rule-bounded recommendation column; Fairest receives the active wash.", "html": "<article class=\"ds-strategy\"><strong>Fairest</strong><dl><dt>Longest trip</dt><dd>24 min</dd></dl></article>", "css": ".ds-strategy { padding:16px; border-right:1px solid #cad2cb; background:#dcece4; color:#12243a; font:14px Inter,system-ui,sans-serif; } .ds-strategy strong { color:#1f6b5d; font-size:16px; } .ds-strategy dl { display:grid; grid-template-columns:1fr auto; gap:8px; margin:16px 0 0; } .ds-strategy dt { color:#526476; font-size:12px; } .ds-strategy dd { margin:0; color:#1f6b5d; font-variant-numeric:tabular-nums; font-weight:700; }" }
+  ],
+  "narrative": {
+    "northStar": "The Civic Route Ledger",
+    "overview": "MeetHalfway is an operational planning surface, not a dark map dashboard. A mineral-paper decision rail and a midnight service header make group inputs, journey evidence, and exceptions feel accountable. The live map remains the working field; the rail records the decision around it.",
+    "keyCharacteristics": ["Paper-like planning surfaces paired with navy service chrome.", "Ruled ledgers in place of generic card stacks.", "Emerald reserved for action, selection, and the Fairest recommendation.", "Responsive panels preserve separate working bands over the map."],
+    "rules": [
+      { "name": "The One Active Route Rule", "body": "Emerald signals an actionable or selected state; it is never decorative fill.", "section": "colors" },
+      { "name": "The Ledger Type Rule", "body": "Measurements use tabular numerals and remain right-aligned against their labels when compared.", "section": "typography" },
+      { "name": "The Field Elevation Rule", "body": "A shadow means a surface is temporarily above the map; ordinary records stay flat and use rules for separation.", "section": "elevation" }
+    ],
+    "dos": ["Do use rules and alignment to show hierarchy before introducing a container.", "Do reserve emerald for the meeting calculation, a selected participant, and the Fairest outcome.", "Do keep map overlays bounded and independently scrollable on mobile."],
+    "donts": ["Don't return to a generic dark sidebar-and-map shell.", "Don't create nested, same-weight cards around every form or result group.", "Don't use blue or purple as a competing active route color."]
+  }
+}

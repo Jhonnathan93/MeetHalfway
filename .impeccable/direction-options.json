@@ -1,0 +1,100 @@
+{
+  "title": "Choose the MeetHalfway visual world",
+  "question": "Pick the operating language for the complete redesign. All options retain the current fairness workflow and map behaviour.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Civic Route Ledger",
+      "kicker": "THE ROLL",
+      "lineage": "public wayfinding desks and municipal transit service boards",
+      "thesis": "A calm route-planning desk where every choice is legible, evidence-led, and shared.",
+      "palette": ["#F6F5F0", "#12243A", "#1F6B5D", "#E45D44"],
+      "materials": ["enamel route lines", "paper-white planning field", "tabular time ledger"],
+      "viewport": "The map holds the field while a structured decision rail turns locations, transport, and fairness into a visible route plan.",
+      "risk": "Could feel too institutional if explanation and human names lose warmth.",
+      "raised": [
+        {"from": "Boarding Pass & Gate Board", "raise": "The decision rail uses uncompromising tabular timing and clear state changes."},
+        {"from": "Midnight Transit Diagram", "raise": "A single active route colour establishes hierarchy across the map and every selected state."}
+      ],
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "route plan rail", "x": 0, "y": 0, "w": 4, "h": 10, "accent": true}, {"label": "live map field", "x": 4, "y": 0, "w": 8, "h": 10}]}
+    },
+    {
+      "id": "model-pick",
+      "label": "Shared Journey Studio",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "contemporary transport editorial and service-design workbooks",
+      "thesis": "The group’s meeting plan unfolds as a clear story from origins to an agreed middle.",
+      "palette": ["#F7F3EA", "#20262E", "#387A68", "#F0A73B"],
+      "materials": ["editorial white space", "precise route annotations", "warm data highlights"],
+      "viewport": "A generous map and concise step-by-step planning column make the fair result feel considered rather than calculated.",
+      "risk": "Familiar for a polished mobility product, so the route evidence must carry the distinctive moment.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "meeting narrative", "x": 0, "y": 0, "w": 5, "h": 10, "accent": true}, {"label": "annotated map", "x": 5, "y": 0, "w": 7, "h": 10}]}
+    },
+    {
+      "id": "challenger-boarding-pass",
+      "label": "Boarding Pass & Gate Board",
+      "verdict": "competitive",
+      "lineage": "travel documents and live departure boards",
+      "thesis": "A shared journey is managed with the confidence of a live travel document.",
+      "palette": ["#F7F4EE", "#15212B", "#E35F42", "#8CA1A6"],
+      "materials": ["segmented ticket", "monospaced timings", "live service rows"],
+      "viewport": "Participant inputs become a single planning pass; recommendations re-rank as a live board beneath the map.",
+      "case": "Strong timing clarity, but an individual travel-document metaphor is less natural for a group decision.",
+      "risk": "Can overstate the formality of an informal meet-up.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "shared travel pass", "x": 0, "y": 0, "w": 12, "h": 3, "accent": true}, {"label": "map and live board", "x": 0, "y": 3, "w": 12, "h": 7}]}
+    },
+    {
+      "id": "challenger-transit-diagram",
+      "label": "Midnight Transit Diagram",
+      "verdict": "competitive",
+      "lineage": "metropolitan rail wayfinding",
+      "thesis": "Fairness becomes a visible interchange in a disciplined city-movement system.",
+      "palette": ["#0C1D32", "#F5F2E9", "#FF624C", "#4D91FF", "#E2B740"],
+      "materials": ["enamel route lines", "station ticks", "service signage"],
+      "viewport": "A map-led workspace gives selected people and recommendations the authority of connected stations.",
+      "case": "Excellent fit for routes and selection, but its dense transit language risks making the product feel specialist.",
+      "risk": "Needs a restrained palette so the map remains easy to read.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "system map", "x": 0, "y": 0, "w": 8, "h": 10, "accent": true}, {"label": "station ledger", "x": 8, "y": 0, "w": 4, "h": 10}]}
+    },
+    {
+      "id": "challenger-orienteering",
+      "label": "Orienteering Map & Legend",
+      "verdict": "declined",
+      "lineage": "orienteering course maps",
+      "thesis": "A route course overlays terrain with active controls and a strict legend.",
+      "palette": ["#F8F5E9", "#654839", "#6B8D4A", "#7352A4"],
+      "materials": ["contour notation", "course circles", "symbol tables"],
+      "viewport": "A purple course line leads across the map to a ranked legend of meeting decisions.",
+      "case": "The map literacy is compelling, but the sporting frame does not identify with ordinary group coordination.",
+      "kept": "A compact visual legend that makes every marker and recommendation immediately intelligible.",
+      "risk": "Can prioritize the map metaphor over clarity for first-time users.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "course map", "x": 0, "y": 0, "w": 9, "h": 10, "accent": true}, {"label": "symbol legend", "x": 9, "y": 0, "w": 3, "h": 10}]}
+    },
+    {
+      "id": "challenger-metro-tiles",
+      "label": "Metro Typographic Tiles",
+      "verdict": "declined",
+      "lineage": "digital metropolitan information boards",
+      "thesis": "Large type and colour fields turn every status into a tile.",
+      "palette": ["#111111", "#00C8D7", "#F7F7F2", "#D81D64"],
+      "materials": ["flat information fields", "large lowercase type", "live tiles"],
+      "viewport": "Panoramic tiles frame the planner as a series of bold status panels.",
+      "case": "Strong visual authority, but the panorama competes with the map and hides the fairness comparison.",
+      "kept": "One unmistakable accent colour for all live and selected states.",
+      "risk": "Can become a visual identity exercise instead of a decision tool.",
+      "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "planning tiles", "x": 0, "y": 0, "w": 5, "h": 10, "accent": true}, {"label": "map field", "x": 5, "y": 0, "w": 7, "h": 10}]}
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "buildPath": {"value": "code", "toggle": true},
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A conventional, polished map app with a minimal sidebar.",
+    "palette": ["#FFFFFF", "#111827", "#2563EB"],
+    "materials": ["clean cards", "neutral map controls"],
+    "viewport": "The expected app-shell arrangement, executed at a high craft level.",
+    "risk": "Indistinguishable from a typical mapping product by design.",
+    "wireframe": {"cols": 12, "rows": 10, "regions": [{"label": "sidebar", "x": 0, "y": 0, "w": 4, "h": 10}, {"label": "map", "x": 4, "y": 0, "w": 8, "h": 10, "accent": true}]}
+  }
+}
